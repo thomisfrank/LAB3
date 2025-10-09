@@ -1,0 +1,220 @@
+[gd_scene load_steps=17 format=3 uid="uid://b2lihann318mb"]
+
+[ext_resource type="Shader" uid="uid://jfk447x074xf" path="res://Scripts/Shader/panelBG.gdshader" id="1_abrp3"]
+[ext_resource type="Shader" uid="uid://c82r54bghps0l" path="res://Scripts/Shader/TextJitter.gdshader" id="2_3hhtl"]
+[ext_resource type="FontFile" uid="uid://m1ywn43ipi6s" path="res://Assets/fonts/Jacquard12-Regular.ttf" id="3_xpgit"]
+[ext_resource type="Texture2D" uid="uid://r4mhdhnpayc0" path="res://Assets/UI/Button.png" id="4_38n2p"]
+[ext_resource type="Texture2D" uid="uid://bn3yv5sw5wafi" path="res://Assets/UI/ButtonPressed.png" id="5_xe701"]
+[ext_resource type="Texture2D" uid="uid://c2slcp3v2jn8k" path="res://Assets/UI/ButtonHover.png" id="6_76fe7"]
+[ext_resource type="FontFile" uid="uid://cd0mg1j1e8pyd" path="res://Assets/fonts/PixelifySans-VariableFont_wght.ttf" id="7_16e25"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_vrutc"]
+shader = ExtResource("1_abrp3")
+shader_parameter/color1 = Color(0.19607843, 0.16470589, 0.18039216, 1)
+shader_parameter/color2 = Color(0.12156863, 0.101960786, 0.105882354, 1)
+shader_parameter/speed = 0.10400000494
+shader_parameter/zoom = 9.9470004249825
+shader_parameter/distortion = 2.0
+shader_parameter/octaves = 3
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_svoei"]
+shader = ExtResource("2_3hhtl")
+shader_parameter/jitter_rate = 8.0
+shader_parameter/jitter_amount = 0.003
+
+[sub_resource type="LabelSettings" id="LabelSettings_cw7as"]
+font = ExtResource("3_xpgit")
+font_size = 150
+font_color = Color(0.9254902, 0.9411765, 0.94509804, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_2xlax"]
+font = ExtResource("3_xpgit")
+font_size = 90
+font_color = Color(0.9254902, 0.9411765, 0.94509804, 1)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_htui6"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_n0kxx"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_1dx50"]
+font = ExtResource("3_xpgit")
+font_size = 100
+font_color = Color(0.9254902, 0.9411765, 0.94509804, 1)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_gb6qi"]
+shader = ExtResource("2_3hhtl")
+shader_parameter/jitter_rate = 4.50000016625
+shader_parameter/jitter_amount = 0.002000000095
+
+[sub_resource type="LabelSettings" id="LabelSettings_o4mxs"]
+font = ExtResource("7_16e25")
+font_size = 32
+font_color = Color(0.17254902, 0.24313726, 0.3137255, 1)
+
+[node name="EndRoundTray" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+metadata/_edit_vertical_guides_ = [50.0, 940.0]
+metadata/_edit_horizontal_guides_ = [240.0, 929.0]
+
+[node name="Shadow" type="ColorRect" parent="."]
+custom_minimum_size = Vector2(0, 1080)
+layout_mode = 0
+offset_left = 1771.0
+offset_right = 1811.0
+offset_bottom = 1080.0
+color = Color(0, 0, 0, 0.21960784)
+
+[node name="BG" type="ColorRect" parent="."]
+material = SubResource("ShaderMaterial_vrutc")
+custom_minimum_size = Vector2(1800, 1080)
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="EndStateLabel" type="Label" parent="."]
+material = SubResource("ShaderMaterial_svoei")
+layout_mode = 0
+offset_left = 57.0
+offset_top = 125.0
+offset_right = 860.0
+offset_bottom = 276.0
+text = "You gave up..."
+label_settings = SubResource("LabelSettings_cw7as")
+
+[node name="Score" type="HBoxContainer" parent="."]
+layout_mode = 0
+offset_left = 55.0
+offset_top = 374.0
+offset_right = 702.0
+offset_bottom = 465.0
+
+[node name="FinalScoreLabel" type="Label" parent="Score"]
+material = SubResource("ShaderMaterial_svoei")
+layout_mode = 2
+text = "Final Score:"
+label_settings = SubResource("LabelSettings_2xlax")
+
+[node name="HSeparator" type="HSeparator" parent="Score"]
+custom_minimum_size = Vector2(40, 0)
+layout_mode = 2
+theme_override_styles/separator = SubResource("StyleBoxEmpty_htui6")
+
+[node name="Scores" type="Label" parent="Score"]
+material = SubResource("ShaderMaterial_svoei")
+layout_mode = 2
+text = "00 - 00"
+label_settings = SubResource("LabelSettings_2xlax")
+
+[node name="Stats" type="HBoxContainer" parent="."]
+layout_mode = 0
+offset_left = 58.0
+offset_top = 576.0
+offset_right = 694.0
+offset_bottom = 952.0
+
+[node name="StatsLabel" type="Label" parent="Stats"]
+material = SubResource("ShaderMaterial_svoei")
+layout_mode = 2
+size_flags_vertical = 0
+text = "Stats:"
+label_settings = SubResource("LabelSettings_2xlax")
+
+[node name="HSeparator" type="HSeparator" parent="Stats"]
+custom_minimum_size = Vector2(20, 0)
+layout_mode = 2
+theme_override_styles/separator = SubResource("StyleBoxEmpty_n0kxx")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Stats"]
+layout_mode = 2
+
+[node name="Swaps" type="Label" parent="Stats/VBoxContainer"]
+material = SubResource("ShaderMaterial_svoei")
+layout_mode = 2
+text = "Swaps used:"
+label_settings = SubResource("LabelSettings_2xlax")
+
+[node name="Draw" type="Label" parent="Stats/VBoxContainer"]
+material = SubResource("ShaderMaterial_svoei")
+layout_mode = 2
+text = "Draws used:"
+label_settings = SubResource("LabelSettings_2xlax")
+
+[node name="Peeks" type="Label" parent="Stats/VBoxContainer"]
+material = SubResource("ShaderMaterial_svoei")
+layout_mode = 2
+text = "Peeks used:"
+label_settings = SubResource("LabelSettings_2xlax")
+
+[node name="Passes" type="Label" parent="Stats/VBoxContainer"]
+material = SubResource("ShaderMaterial_svoei")
+layout_mode = 2
+text = "Passes used:"
+label_settings = SubResource("LabelSettings_2xlax")
+
+[node name="BestRoundLabel" type="Label" parent="."]
+material = SubResource("ShaderMaterial_svoei")
+layout_mode = 0
+offset_left = 937.0
+offset_top = 163.0
+offset_right = 1398.0
+offset_bottom = 264.0
+text = "Best Round:"
+label_settings = SubResource("LabelSettings_1dx50")
+
+[node name="BestRoundLabel2" type="Label" parent="."]
+material = SubResource("ShaderMaterial_svoei")
+layout_mode = 0
+offset_left = 1644.0
+offset_top = 163.0
+offset_right = 1711.0
+offset_bottom = 264.0
+text = "00"
+label_settings = SubResource("LabelSettings_1dx50")
+
+[node name="PassButton" type="TextureButton" parent="."]
+layout_mode = 0
+offset_left = 940.0
+offset_top = 824.0
+offset_right = 1140.0
+offset_bottom = 878.0
+scale = Vector2(1.9200001, 1.9200001)
+size_flags_horizontal = 4
+size_flags_vertical = 4
+texture_normal = ExtResource("4_38n2p")
+texture_pressed = ExtResource("5_xe701")
+texture_hover = ExtResource("6_76fe7")
+
+[node name="Label" type="Label" parent="PassButton"]
+texture_filter = 1
+material = SubResource("ShaderMaterial_gb6qi")
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.115
+anchor_top = 0.12962963
+anchor_right = 0.88
+anchor_bottom = 0.8518519
+offset_top = -2.0
+offset_bottom = -2.0
+text = "Play again"
+label_settings = SubResource("LabelSettings_o4mxs")
+metadata/_edit_use_anchors_ = true
+
+[node name="QuitButton" type="Button" parent="."]
+texture_filter = 1
+layout_mode = 0
+offset_left = 1544.0
+offset_top = 838.0
+offset_right = 1650.0
+offset_bottom = 905.0
+theme_override_colors/font_color = Color(0.9254902, 0.9411765, 0.94509804, 1)
+theme_override_colors/font_hover_color = Color(0.15294118, 0.68235296, 0.3764706, 1)
+theme_override_colors/font_hover_pressed_color = Color(0.94509804, 0.76862746, 0.05882353, 1)
+theme_override_fonts/font = ExtResource("7_16e25")
+theme_override_font_sizes/font_size = 48
+text = "Quit"
+flat = true

@@ -1,0 +1,84 @@
+[gd_scene load_steps=8 format=3 uid="uid://d22ua8nju6in8"]
+
+[ext_resource type="Shader" uid="uid://jfk447x074xf" path="res://Scripts/Shader/panelBG.gdshader" id="1_6nr0s"]
+[ext_resource type="Shader" uid="uid://c82r54bghps0l" path="res://Scripts/Shader/TextJitter.gdshader" id="2_ve7j5"]
+[ext_resource type="FontFile" uid="uid://m1ywn43ipi6s" path="res://Assets/fonts/Jacquard12-Regular.ttf" id="3_ci2l0"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_vrutc"]
+shader = ExtResource("1_6nr0s")
+shader_parameter/color1 = Color(0.19607843, 0.16470589, 0.18039216, 1)
+shader_parameter/color2 = Color(0.12156863, 0.101960786, 0.105882354, 1)
+shader_parameter/speed = 0.10400000494
+shader_parameter/zoom = 9.9470004249825
+shader_parameter/distortion = 2.0
+shader_parameter/octaves = 3
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_svoei"]
+shader = ExtResource("2_ve7j5")
+shader_parameter/jitter_rate = 8.0
+shader_parameter/jitter_amount = 0.003
+
+[sub_resource type="LabelSettings" id="LabelSettings_cw7as"]
+font = ExtResource("3_ci2l0")
+font_size = 200
+font_color = Color(0.9254902, 0.9411765, 0.94509804, 1)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_0tqje"]
+
+[node name="EndRoundTray" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+metadata/_edit_vertical_guides_ = [610.0]
+
+[node name="Shadow" type="ColorRect" parent="."]
+custom_minimum_size = Vector2(0, 1080)
+layout_mode = 0
+offset_left = 1771.0
+offset_right = 1811.0
+offset_bottom = 1080.0
+color = Color(0, 0, 0, 0.21960784)
+
+[node name="BG" type="ColorRect" parent="."]
+material = SubResource("ShaderMaterial_vrutc")
+custom_minimum_size = Vector2(1800, 1080)
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="RoundSummary" type="Label" parent="."]
+material = SubResource("ShaderMaterial_svoei")
+layout_mode = 0
+offset_left = 611.0
+offset_top = 799.0
+offset_right = 1334.0
+offset_bottom = 1000.0
+text = "It's a tie..."
+label_settings = SubResource("LabelSettings_cw7as")
+
+[node name="HBoxContainer" type="HBoxContainer" parent="."]
+layout_mode = 0
+offset_left = 613.0
+offset_top = 110.0
+offset_right = 1687.0
+offset_bottom = 311.0
+
+[node name="PlayerHandTotal" type="Label" parent="HBoxContainer"]
+material = SubResource("ShaderMaterial_svoei")
+layout_mode = 2
+text = "#"
+label_settings = SubResource("LabelSettings_cw7as")
+
+[node name="HSeparator" type="HSeparator" parent="HBoxContainer"]
+custom_minimum_size = Vector2(750, 0)
+layout_mode = 2
+theme_override_styles/separator = SubResource("StyleBoxEmpty_0tqje")
+
+[node name="OpponentHandTotal" type="Label" parent="HBoxContainer"]
+material = SubResource("ShaderMaterial_svoei")
+layout_mode = 2
+text = "#"
+label_settings = SubResource("LabelSettings_cw7as")

@@ -1,0 +1,100 @@
+[gd_scene load_steps=13 format=3 uid="uid://2gbx8t47wulx"]
+
+[ext_resource type="Script" uid="uid://bvykv067hs4eb" path="res://Scripts/UI/backgrounds.gd" id="1_53u6m"]
+[ext_resource type="Texture2D" uid="uid://vlhc31ljijqr" path="res://Assets/backgrounds/GreenCheckered.png" id="2_40ekp"]
+[ext_resource type="Shader" uid="uid://3xkja30yreeq" path="res://Scripts/Shader/DynamicBackgrounds.gdshader" id="2_jv67r"]
+[ext_resource type="Texture2D" uid="uid://kb7yvm45bd0" path="res://Assets/backgrounds/GreenDots.png" id="3_jv67r"]
+[ext_resource type="Texture2D" uid="uid://cma1n2py0lpk7" path="res://Assets/backgrounds/BlueCheckered.png" id="4_wkmnp"]
+[ext_resource type="Texture2D" uid="uid://crh3o2dyqo8uh" path="res://Assets/backgrounds/Blue90s.png" id="5_jeucb"]
+[ext_resource type="Texture2D" uid="uid://cb80hgwyyttw7" path="res://Assets/backgrounds/RedCheckered.png" id="6_maq21"]
+[ext_resource type="Texture2D" uid="uid://dvsrme8ef2t3m" path="res://Assets/backgrounds/RedBerry.png" id="7_cterp"]
+[ext_resource type="Texture2D" uid="uid://da4rtwhec3p0w" path="res://Assets/backgrounds/YellowCheckered.png" id="8_bfcbw"]
+[ext_resource type="Texture2D" uid="uid://p4si3sydrwjw" path="res://Assets/backgrounds/YellowNana.png" id="9_44cub"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_wkmnp"]
+shader = ExtResource("2_jv67r")
+shader_parameter/scroll_speed = Vector2(0.02, 0.01)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_jeucb"]
+shader = ExtResource("2_jv67r")
+shader_parameter/scroll_speed = Vector2(0.02, 0.01)
+
+[node name="backgrounds" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_53u6m")
+
+[node name="Landscape" type="AspectRatioContainer" parent="."]
+custom_minimum_size = Vector2(1920, 1080)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="GreenCheckered" type="TextureRect" parent="Landscape"]
+material = SubResource("ShaderMaterial_wkmnp")
+layout_mode = 2
+texture = ExtResource("2_40ekp")
+stretch_mode = 1
+
+[node name="GreenDots" type="TextureRect" parent="Landscape"]
+unique_name_in_owner = true
+visible = false
+material = SubResource("ShaderMaterial_jeucb")
+layout_mode = 2
+texture = ExtResource("3_jv67r")
+stretch_mode = 1
+
+[node name="BlueCheckered" type="TextureRect" parent="Landscape"]
+unique_name_in_owner = true
+visible = false
+material = SubResource("ShaderMaterial_jeucb")
+layout_mode = 2
+texture = ExtResource("4_wkmnp")
+stretch_mode = 1
+
+[node name="Blue90s" type="TextureRect" parent="Landscape"]
+unique_name_in_owner = true
+visible = false
+material = SubResource("ShaderMaterial_jeucb")
+layout_mode = 2
+texture = ExtResource("5_jeucb")
+stretch_mode = 1
+
+[node name="RedCheckered" type="TextureRect" parent="Landscape"]
+unique_name_in_owner = true
+visible = false
+material = SubResource("ShaderMaterial_jeucb")
+layout_mode = 2
+texture = ExtResource("6_maq21")
+stretch_mode = 1
+
+[node name="RedBerry" type="TextureRect" parent="Landscape"]
+unique_name_in_owner = true
+visible = false
+material = SubResource("ShaderMaterial_jeucb")
+layout_mode = 2
+texture = ExtResource("7_cterp")
+stretch_mode = 1
+
+[node name="YellowCheckered" type="TextureRect" parent="Landscape"]
+unique_name_in_owner = true
+visible = false
+material = SubResource("ShaderMaterial_jeucb")
+layout_mode = 2
+texture = ExtResource("8_bfcbw")
+stretch_mode = 1
+
+[node name="YellowNana" type="TextureRect" parent="Landscape"]
+unique_name_in_owner = true
+visible = false
+material = SubResource("ShaderMaterial_jeucb")
+layout_mode = 2
+texture = ExtResource("9_44cub")
+stretch_mode = 1

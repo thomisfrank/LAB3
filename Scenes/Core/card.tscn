@@ -1,0 +1,162 @@
+[gd_scene load_steps=27 format=3 uid="uid://jk3nxgheskjr"]
+
+[ext_resource type="Shader" uid="uid://dl18pdf50a4mb" path="res://Scripts/Shader/CardBorder.gdshader" id="1_k8pqf"]
+[ext_resource type="Shader" uid="uid://dyirwv38vux2g" path="res://Scripts/Shader/CardGradient.gdshader" id="2_fyv6h"]
+[ext_resource type="Shader" uid="uid://c82r54bghps0l" path="res://Scripts/Shader/TextJitter.gdshader" id="3_1cqmn"]
+[ext_resource type="FontFile" uid="uid://m1ywn43ipi6s" path="res://Assets/fonts/Jacquard12-Regular.ttf" id="3_fyv6h"]
+[ext_resource type="Texture2D" uid="uid://c5hggaaw5c51v" path="res://Assets/CardFramework/Logo.png" id="4_fyv6h"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_k8pqf"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_fyv6h"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_1cqmn"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_igamc"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_vxxc8"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_vxxc8"]
+shader = ExtResource("1_k8pqf")
+shader_parameter/fill_color = Color(0.2, 0.26, 0.35, 1)
+shader_parameter/pixel_grid_size = 45.00000209
+shader_parameter/corner_size = 2
+
+[sub_resource type="Gradient" id="Gradient_1jrhc"]
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_8rdxi"]
+gradient = SubResource("Gradient_1jrhc")
+width = 500
+height = 700
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_0jwki"]
+shader = ExtResource("2_fyv6h")
+shader_parameter/speed = 0.5
+shader_parameter/color_a = Color(0.15294118, 0.68235296, 0.3764706, 1)
+shader_parameter/color_b = Color(0.60523856, 0.9356135, 0.6617927, 1)
+shader_parameter/scale = 2.5
+
+[sub_resource type="Gradient" id="Gradient_cdicx"]
+interpolation_mode = 2
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_ridwv"]
+gradient = SubResource("Gradient_cdicx")
+width = 460
+height = 660
+fill = 1
+
+[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_4ekg0"]
+size = Vector2(150, 150)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_igamc"]
+shader = ExtResource("3_1cqmn")
+shader_parameter/jitter_rate = 4.50000016625
+shader_parameter/jitter_amount = 0.002000000095
+
+[sub_resource type="LabelSettings" id="LabelSettings_nw351"]
+font = ExtResource("3_fyv6h")
+font_size = 125
+font_color = Color(0.17254902, 0.24313726, 0.3137255, 1)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_1cqmn"]
+shader = ExtResource("1_k8pqf")
+shader_parameter/fill_color = Color(0.9254902, 0.9411765, 0.94509804, 1)
+shader_parameter/pixel_grid_size = 45.00000209
+shader_parameter/corner_size = 2
+
+[sub_resource type="Gradient" id="Gradient_igamc"]
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_vxxc8"]
+gradient = SubResource("Gradient_igamc")
+width = 500
+height = 700
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_1jrhc"]
+shader = ExtResource("2_fyv6h")
+shader_parameter/speed = 0.5
+shader_parameter/color_a = Color(0.17254902, 0.24313726, 0.3137255, 1)
+shader_parameter/color_b = Color(0.3125337, 0.41808355, 0.5239429, 1)
+shader_parameter/scale = 2.5
+
+[sub_resource type="Gradient" id="Gradient_8rdxi"]
+interpolation_mode = 2
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_4ekg0"]
+gradient = SubResource("Gradient_8rdxi")
+width = 460
+height = 660
+fill = 1
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_fyv6h"]
+size = Vector2(458, 660)
+
+[node name="Card" type="Button"]
+custom_minimum_size = Vector2(500, 700)
+offset_right = 8.0
+offset_bottom = 8.0
+theme_override_styles/normal = SubResource("StyleBoxEmpty_k8pqf")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_fyv6h")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_1cqmn")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_igamc")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_vxxc8")
+
+[node name="CardFace" type="Node2D" parent="."]
+
+[node name="Border" type="Sprite2D" parent="CardFace"]
+material = SubResource("ShaderMaterial_vxxc8")
+position = Vector2(253, 351)
+texture = SubResource("GradientTexture2D_8rdxi")
+
+[node name="Background" type="Sprite2D" parent="CardFace"]
+material = SubResource("ShaderMaterial_0jwki")
+position = Vector2(253, 351)
+texture = SubResource("GradientTexture2D_ridwv")
+
+[node name="Icon" type="Sprite2D" parent="CardFace"]
+modulate = Color(0.17254902, 0.24313726, 0.3137255, 1)
+position = Vector2(253, 351)
+texture = SubResource("PlaceholderTexture2D_4ekg0")
+
+[node name="ValueLabel" type="Label" parent="CardFace"]
+material = SubResource("ShaderMaterial_igamc")
+custom_minimum_size = Vector2(100, 100)
+offset_left = 383.0
+offset_top = 21.0
+offset_right = 483.0
+offset_bottom = 147.0
+text = "2"
+label_settings = SubResource("LabelSettings_nw351")
+
+[node name="ValueLabel2" type="Label" parent="CardFace"]
+material = SubResource("ShaderMaterial_igamc")
+custom_minimum_size = Vector2(100, 100)
+offset_left = 25.0
+offset_top = 554.0
+offset_right = 125.0
+offset_bottom = 680.0
+text = "2"
+label_settings = SubResource("LabelSettings_nw351")
+horizontal_alignment = 2
+
+[node name="CardBack" type="Node2D" parent="."]
+visible = false
+
+[node name="Border" type="Sprite2D" parent="CardBack"]
+material = SubResource("ShaderMaterial_1cqmn")
+position = Vector2(253, 351)
+texture = SubResource("GradientTexture2D_vxxc8")
+
+[node name="Background" type="Sprite2D" parent="CardBack"]
+material = SubResource("ShaderMaterial_1jrhc")
+position = Vector2(253, 351)
+texture = SubResource("GradientTexture2D_4ekg0")
+
+[node name="Icon" type="Sprite2D" parent="CardBack"]
+position = Vector2(253, 351)
+texture = ExtResource("4_fyv6h")
+
+[node name="Area2D" type="Area2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
+position = Vector2(253, 352)
+shape = SubResource("RectangleShape2D_fyv6h")

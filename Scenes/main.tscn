@@ -1,0 +1,159 @@
+[gd_scene load_steps=19 format=3 uid="uid://k78r5mnfr86l"]
+
+[ext_resource type="Script" uid="uid://dt01fmi0ud6n0" path="res://Scripts/Core/main.gd" id="1_21xkr"]
+[ext_resource type="Script" uid="uid://diupc0dagbyfv" path="res://Scripts/Managers/card_manager.gd" id="1_bo1nx"]
+[ext_resource type="PackedScene" uid="uid://hicesjantdjt" path="res://Scenes/Core/interactiveCard.tscn" id="1_jjgbg"]
+[ext_resource type="Script" uid="uid://bg34rp06cjr8r" path="res://Scripts/Managers/RoundManager.gd" id="1_rm"]
+[ext_resource type="Script" uid="uid://cgaq32kgv6rlc" path="res://Scripts/Managers/TurnManager.gd" id="1_tm"]
+[ext_resource type="Script" uid="uid://lbbt084v7576" path="res://Scripts/Managers/UIManager.gd" id="1_uim"]
+[ext_resource type="Script" uid="uid://07gd83vaqvgj" path="res://Scripts/Core/parallax.gd" id="2_6bp64"]
+[ext_resource type="Shader" uid="uid://y6n83i5mjk4c" path="res://Scripts/Shader/post_processing.gdshader" id="3_8gbba"]
+[ext_resource type="PackedScene" uid="uid://2gbx8t47wulx" path="res://Scenes/UI/backgrounds.tscn" id="5_1w6v2"]
+[ext_resource type="Script" uid="uid://bghl75ky5hfgf" path="res://Scripts/Managers/ai_manager.gd" id="5_h1bgf"]
+[ext_resource type="PackedScene" uid="uid://gdkre2xkksra" path="res://Scenes/Core/deck.tscn" id="6_6bp64"]
+[ext_resource type="PackedScene" uid="uid://djx8niab6ivv2" path="res://Scenes/Core/discard_pile.tscn" id="7_hptm8"]
+[ext_resource type="PackedScene" uid="uid://gu4ayccbc2mf" path="res://Scenes/Core/drop_zone.tscn" id="7_ynf5e"]
+[ext_resource type="PackedScene" uid="uid://l3ep0uhlvt53" path="res://Scenes/UI/game_state_overlay.tscn" id="9_d1ilt"]
+[ext_resource type="PackedScene" uid="uid://d22ua8nju6in8" path="res://Scenes/UI/end_round_tray.tscn" id="9_fdnlq"]
+[ext_resource type="PackedScene" uid="uid://bd7r3kr8kyerm" path="res://Scenes/UI/ui_panel.tscn" id="10_d1ilt"]
+[ext_resource type="PackedScene" uid="uid://b2lihann318mb" path="res://Scenes/UI/end_game_tray.tscn" id="12_jkdf5"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_jjvhh"]
+shader = ExtResource("3_8gbba")
+shader_parameter/overlay = true
+shader_parameter/scanlines_opacity = 0.058000002755
+shader_parameter/scanlines_width = 0.14000000665
+shader_parameter/grille_opacity = 0.050000002375
+shader_parameter/resolution = Vector2(1920, 1080)
+shader_parameter/pixelate = true
+shader_parameter/roll = true
+shader_parameter/roll_speed = 2.0
+shader_parameter/roll_size = 6.000000285
+shader_parameter/roll_variation = 1.8
+shader_parameter/distort_intensity = 0.002000000095
+shader_parameter/noise_opacity = 0.01600000076
+shader_parameter/noise_speed = 5.0
+shader_parameter/static_noise_intensity = 0.03600000171
+shader_parameter/aberration = 4.7499999933364734e-08
+shader_parameter/brightness = 1.0
+shader_parameter/discolor = false
+shader_parameter/warp_amount = 0.09600000456
+shader_parameter/clip_warp = true
+shader_parameter/vignette_intensity = 0.4
+shader_parameter/vignette_opacity = 0.0750000035625
+
+[node name="main" type="Node2D" node_paths=PackedStringArray("discard_pile_node")]
+script = ExtResource("1_21xkr")
+cards_to_draw = 4
+discard_pile_node = NodePath("Parallax/discardPile")
+
+[node name="Managers" type="Node" parent="."]
+
+[node name="RoundManager" type="Node" parent="Managers"]
+script = ExtResource("1_rm")
+player_hand_spacing = 150.0
+player_fan_angle_degrees = 20.0
+player_card_size = Vector2(200, 280)
+opponent_card_size = Vector2(200, 280)
+player_hand_offset_x = -150.0
+
+[node name="TurnManager" type="Node" parent="Managers"]
+script = ExtResource("1_tm")
+show_turn_overlay = true
+inactive_player_opacity = 0.2
+action_pop_scale = 1.05
+action_pop_rotation_degrees = 8.0
+action_pop_grow_time = 0.02
+end_of_actions_delay = 0.8
+
+[node name="UIManager" type="Node" parent="Managers"]
+script = ExtResource("1_uim")
+loading_opacity = 100.0
+panels_off_alpha = null
+panels_on_alpha = null
+
+[node name="AIManager" type="Node" parent="Managers"]
+script = ExtResource("5_h1bgf")
+
+[node name="BackLayerUI" type="CanvasLayer" parent="."]
+layer = -10
+follow_viewport_enabled = true
+
+[node name="backgrounds" parent="BackLayerUI" instance=ExtResource("5_1w6v2")]
+
+[node name="Parallax" type="Control" parent="."]
+custom_minimum_size = Vector2(1920, 1080)
+layout_mode = 3
+anchors_preset = 0
+offset_top = 4.0
+offset_right = 1920.0
+offset_bottom = 1084.0
+mouse_filter = 2
+script = ExtResource("2_6bp64")
+
+[node name="DropZone" parent="Parallax" instance=ExtResource("7_ynf5e")]
+position = Vector2(1080, 508)
+scale = Vector2(0.7600025, 0.9267921)
+fade_in_alpha = 0.089
+fade_in_duration = 0.197
+fade_in_ease = 2
+fade_in_trans = 6
+fade_out_ease = 2
+fade_out_trans = 9
+shader_tween_duration = 0.5690000000000001
+shader_tween_trans = 9
+shader_edge_width = 0.106
+shader_edge_color = Color(0.15294118, 0.68235296, 0.3764706, 1)
+
+[node name="CardManager" type="Node2D" parent="Parallax"]
+position = Vector2(-2, 0)
+script = ExtResource("1_bo1nx")
+card_scene = ExtResource("1_jjgbg")
+draw_stagger = 0.08
+
+[node name="Deck" parent="Parallax" instance=ExtResource("6_6bp64")]
+position = Vector2(1605, 670)
+scale = Vector2(0.4, 0.4)
+
+[node name="discardPile" parent="Parallax" instance=ExtResource("7_hptm8")]
+position = Vector2(1728, 332)
+rotation_range_degrees = 6.100000000000001
+flash_brightness = 4.0
+wiggle_offset = Vector2(12, 2)
+wiggle_duration = 1.0
+
+[node name="FrontLayerUI" type="CanvasLayer" parent="."]
+follow_viewport_enabled = true
+
+[node name="EndRoundTray" parent="FrontLayerUI" instance=ExtResource("9_fdnlq")]
+visible = false
+
+[node name="GameStateOverlay" parent="FrontLayerUI" instance=ExtResource("9_d1ilt")]
+visible = false
+
+[node name="UIPanel" parent="FrontLayerUI" instance=ExtResource("10_d1ilt")]
+offset_left = 2.0
+offset_top = 0.0
+offset_right = 1.9999695
+offset_bottom = 0.0
+metadata/_edit_lock_ = true
+
+[node name="EndGameTray" parent="FrontLayerUI" instance=ExtResource("12_jkdf5")]
+visible = false
+
+[node name="ColorRect" type="ColorRect" parent="FrontLayerUI"]
+material = SubResource("ShaderMaterial_jjvhh")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -132.0
+offset_top = -110.0
+offset_right = 130.0
+offset_bottom = 124.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(1, 1, 1, 0)
+metadata/_edit_lock_ = true
+
+[connection signal="area_entered" from="Parallax/DropZone" to="Parallax/DropZone" method="_on_area_entered"]

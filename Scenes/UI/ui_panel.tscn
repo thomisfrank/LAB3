@@ -1,0 +1,600 @@
+[gd_scene load_steps=36 format=3 uid="uid://bd7r3kr8kyerm"]
+
+[ext_resource type="Shader" uid="uid://c82r54bghps0l" path="res://Scripts/Shader/TextJitter.gdshader" id="1_8dexo"]
+[ext_resource type="Shader" uid="uid://jfk447x074xf" path="res://Scripts/Shader/panelBG.gdshader" id="1_whl73"]
+[ext_resource type="FontFile" uid="uid://m1ywn43ipi6s" path="res://Assets/fonts/Jacquard12-Regular.ttf" id="2_f8ty4"]
+[ext_resource type="FontFile" uid="uid://cd0mg1j1e8pyd" path="res://Assets/fonts/PixelifySans-VariableFont_wght.ttf" id="3_bdxum"]
+[ext_resource type="Shader" uid="uid://bj1asd5qhlhol" path="res://Scripts/Shader/smallDisplay.gdshader" id="4_f8ty4"]
+[ext_resource type="FontFile" uid="uid://cwx8a1d8i5udy" path="res://Assets/fonts/Seven Segment.ttf" id="5_olr4l"]
+[ext_resource type="Shader" uid="uid://b3xlk1vkq2k5b" path="res://Scripts/Shader/actionIcon.gdshader" id="6_40kas"]
+[ext_resource type="Texture2D" uid="uid://r4mhdhnpayc0" path="res://Assets/UI/Button.png" id="7_xrano"]
+[ext_resource type="Texture2D" uid="uid://bn3yv5sw5wafi" path="res://Assets/UI/ButtonPressed.png" id="8_bbg02"]
+[ext_resource type="Texture2D" uid="uid://c2slcp3v2jn8k" path="res://Assets/UI/ButtonHover.png" id="9_n8jhx"]
+[ext_resource type="Shader" uid="uid://botwnnjgmqwq" path="res://Scripts/Shader/smallDisplay2.gdshader" id="10_3jtyh"]
+[ext_resource type="Texture2D" uid="uid://cb3vjmk6p2ucw" path="res://Assets/UI/PanelBox.png" id="11_iovtx"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_jxrjt"]
+shader = ExtResource("1_8dexo")
+shader_parameter/jitter_rate = 6.0000002375
+shader_parameter/jitter_amount = 0.002000000095
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_olr4l"]
+shader = ExtResource("1_whl73")
+shader_parameter/color1 = Color(0.17254902, 0.24313726, 0.3137255, 1)
+shader_parameter/color2 = Color(0.29957807, 0.4025216, 0.5057259, 1)
+shader_parameter/speed = 0.4230000200925
+shader_parameter/zoom = 5.902000232845
+shader_parameter/distortion = 1.3730000652175
+shader_parameter/octaves = 5
+
+[sub_resource type="Gradient" id="Gradient_40kas"]
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_qaq6h"]
+gradient = SubResource("Gradient_40kas")
+
+[sub_resource type="LabelSettings" id="LabelSettings_k6kgl"]
+font = ExtResource("2_f8ty4")
+font_size = 100
+font_color = Color(0.9254902, 0.9411765, 0.94509804, 1)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_xrano"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_b0c3d"]
+font = ExtResource("2_f8ty4")
+font_size = 100
+font_color = Color(0.9254902, 0.9411765, 0.94509804, 1)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_bbg02"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_xrano"]
+font = ExtResource("3_bdxum")
+font_size = 18
+font_color = Color(0.9254902, 0.9411765, 0.94509804, 1)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_bdxum"]
+shader = ExtResource("4_f8ty4")
+shader_parameter/box_color = Color(0.2, 0.18, 0.22, 1)
+shader_parameter/line_color = Color(0.35, 0.35, 0.38, 1)
+shader_parameter/corner_radius = 0.26000001235
+shader_parameter/line_thickness = 0.0050000002375
+shader_parameter/line_position1 = 0.33
+shader_parameter/line_position2 = 0.67
+shader_parameter/gleam_color = Color(1, 1, 1, 0.1)
+shader_parameter/gleam_speed = 0.15
+shader_parameter/gleam_width = 0.290000013775
+
+[sub_resource type="LabelSettings" id="LabelSettings_qaq6h"]
+font = ExtResource("5_olr4l")
+font_size = 64
+font_color = Color(0.94509804, 0.76862746, 0.05882353, 1)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_k6kgl"]
+shader = ExtResource("4_f8ty4")
+shader_parameter/box_color = Color(0.12156863, 0.101960786, 0.105882354, 1)
+shader_parameter/line_color = Color(0.35, 0.35, 0.38, 1)
+shader_parameter/corner_radius = 0.5
+shader_parameter/line_thickness = 0.003
+shader_parameter/line_position1 = 0.0
+shader_parameter/line_position2 = 0.0
+shader_parameter/gleam_color = Color(1, 1, 1, 0.1)
+shader_parameter/gleam_speed = 0.1510000071725
+shader_parameter/gleam_width = 0.394000018715
+
+[sub_resource type="LabelSettings" id="LabelSettings_bbg02"]
+font = ExtResource("5_olr4l")
+font_size = 24
+font_color = Color(0.94509804, 0.76862746, 0.05882353, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_n8jhx"]
+font = ExtResource("5_olr4l")
+font_size = 24
+font_color = Color(0.94509804, 0.76862746, 0.05882353, 1)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_3jtyh"]
+shader = ExtResource("6_40kas")
+shader_parameter/border_color = Color(0.9254902, 0.9411765, 0.94509804, 1)
+shader_parameter/fill_color = Color(0.15294118, 0.68235296, 0.3764706, 1)
+shader_parameter/corner_radius = 0.10000000475
+shader_parameter/border_thickness = 0.0970000046075
+shader_parameter/fill_alpha = 1.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_felqg"]
+shader = ExtResource("6_40kas")
+shader_parameter/border_color = Color(0.9254902, 0.9411765, 0.94509804, 1)
+shader_parameter/fill_color = Color(0.15294118, 0.68235296, 0.3764706, 1)
+shader_parameter/corner_radius = 0.10000000475
+shader_parameter/border_thickness = 0.0970000046075
+shader_parameter/fill_alpha = 1.0
+
+[sub_resource type="LabelSettings" id="LabelSettings_5iwwa"]
+font = ExtResource("3_bdxum")
+font_size = 32
+font_color = Color(0.17254902, 0.24313726, 0.3137255, 1)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_n8jhx"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_7bfds"]
+shader = ExtResource("6_40kas")
+shader_parameter/border_color = Color(0.9254902, 0.9411765, 0.94509804, 1)
+shader_parameter/fill_color = Color(0.15294118, 0.68235296, 0.3764706, 1)
+shader_parameter/corner_radius = 0.10000000475
+shader_parameter/border_thickness = 0.0970000046075
+shader_parameter/fill_alpha = 1.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_kry7q"]
+shader = ExtResource("6_40kas")
+shader_parameter/border_color = Color(0.9254902, 0.9411765, 0.94509804, 1)
+shader_parameter/fill_color = Color(0.15294118, 0.68235296, 0.3764706, 1)
+shader_parameter/corner_radius = 0.10000000475
+shader_parameter/border_thickness = 0.0970000046075
+shader_parameter/fill_alpha = 1.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_5bnn7"]
+shader = ExtResource("10_3jtyh")
+shader_parameter/gleam_color = Color(0.9254902, 0.9411765, 0.94509804, 0.047058824)
+shader_parameter/gleam_speed = 0.03600000171
+shader_parameter/gleam_width = 0.3150000149625
+
+[sub_resource type="LabelSettings" id="LabelSettings_2lcw2"]
+font = ExtResource("3_bdxum")
+font_size = 28
+font_color = Color(0.94509804, 0.76862746, 0.05882353, 1)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_8dexo"]
+shader = ExtResource("1_8dexo")
+shader_parameter/jitter_rate = 8.0
+shader_parameter/jitter_amount = 0.003
+
+[node name="UIPanel" type="Control"]
+material = SubResource("ShaderMaterial_jxrjt")
+layout_mode = 3
+anchor_right = 0.25885418
+anchor_bottom = 1.0
+offset_top = -2.0
+offset_right = -3.0517578e-05
+offset_bottom = -2.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Shadow" type="ColorRect" parent="."]
+custom_minimum_size = Vector2(0, 1080)
+layout_mode = 0
+offset_left = 446.0
+offset_top = -3.0
+offset_right = 486.0
+offset_bottom = 1081.0
+color = Color(0.05882353, 0.09411765, 0.12941177, 0.20392157)
+
+[node name="PanelBG" type="TextureRect" parent="."]
+material = SubResource("ShaderMaterial_olr4l")
+custom_minimum_size = Vector2(480, 1080)
+layout_mode = 0
+offset_left = -2.0
+offset_right = 478.0
+offset_bottom = 1080.0
+texture = SubResource("GradientTexture2D_qaq6h")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="PanelBG"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -230.0
+offset_top = -513.5
+offset_right = 230.0
+offset_bottom = 513.5
+grow_horizontal = 2
+grow_vertical = 2
+alignment = 1
+
+[node name="RoundTitle" type="HBoxContainer" parent="PanelBG/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+
+[node name="RoundLabel" type="Label" parent="PanelBG/VBoxContainer/RoundTitle"]
+texture_filter = 1
+material = SubResource("ShaderMaterial_jxrjt")
+layout_mode = 2
+text = "Round"
+label_settings = SubResource("LabelSettings_k6kgl")
+
+[node name="HSeparator" type="HSeparator" parent="PanelBG/VBoxContainer/RoundTitle"]
+custom_minimum_size = Vector2(40, 0)
+layout_mode = 2
+theme_override_styles/separator = SubResource("StyleBoxEmpty_xrano")
+
+[node name="Round#" type="Label" parent="PanelBG/VBoxContainer/RoundTitle"]
+texture_filter = 1
+material = SubResource("ShaderMaterial_jxrjt")
+layout_mode = 2
+text = "1"
+label_settings = SubResource("LabelSettings_b0c3d")
+
+[node name="VSeparator" type="VSeparator" parent="PanelBG/VBoxContainer"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+theme_override_styles/separator = SubResource("StyleBoxEmpty_bbg02")
+
+[node name="TurnEconomy" type="HBoxContainer" parent="PanelBG/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+
+[node name="PlayerUI" type="VBoxContainer" parent="PanelBG/VBoxContainer/TurnEconomy"]
+layout_mode = 2
+alignment = 1
+
+[node name="PlayerLabel" type="Label" parent="PanelBG/VBoxContainer/TurnEconomy/PlayerUI"]
+texture_filter = 1
+material = SubResource("ShaderMaterial_jxrjt")
+layout_mode = 2
+size_flags_horizontal = 4
+text = "YOU"
+label_settings = SubResource("LabelSettings_xrano")
+
+[node name="VSeparator2" type="VSeparator" parent="PanelBG/VBoxContainer/TurnEconomy/PlayerUI"]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+theme_override_styles/separator = SubResource("StyleBoxEmpty_bbg02")
+
+[node name="Scorebox" type="ColorRect" parent="PanelBG/VBoxContainer/TurnEconomy/PlayerUI"]
+material = SubResource("ShaderMaterial_bdxum")
+custom_minimum_size = Vector2(216, 100)
+layout_mode = 2
+size_flags_vertical = 4
+
+[node name="#__" type="Label" parent="PanelBG/VBoxContainer/TurnEconomy/PlayerUI/Scorebox"]
+texture_filter = 1
+material = SubResource("ShaderMaterial_jxrjt")
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 0.01
+anchor_right = 0.32407406
+anchor_bottom = 0.99
+offset_top = -2.0
+offset_bottom = -2.0
+text = "0"
+label_settings = SubResource("LabelSettings_qaq6h")
+horizontal_alignment = 1
+vertical_alignment = 1
+metadata/_edit_use_anchors_ = true
+
+[node name="_#_" type="Label" parent="PanelBG/VBoxContainer/TurnEconomy/PlayerUI/Scorebox"]
+texture_filter = 1
+material = SubResource("ShaderMaterial_jxrjt")
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.33333334
+anchor_top = 0.01
+anchor_right = 0.6666667
+anchor_bottom = 0.99
+offset_top = -2.0
+offset_bottom = -2.0
+text = "0"
+label_settings = SubResource("LabelSettings_qaq6h")
+horizontal_alignment = 1
+vertical_alignment = 1
+metadata/_edit_use_anchors_ = true
+
+[node name="__#" type="Label" parent="PanelBG/VBoxContainer/TurnEconomy/PlayerUI/Scorebox"]
+texture_filter = 1
+material = SubResource("ShaderMaterial_jxrjt")
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.6712963
+anchor_top = 0.01
+anchor_right = 1.0046296
+anchor_bottom = 0.99
+offset_top = -2.0
+offset_bottom = -2.0
+text = "0"
+label_settings = SubResource("LabelSettings_qaq6h")
+horizontal_alignment = 1
+vertical_alignment = 1
+metadata/_edit_use_anchors_ = true
+
+[node name="VSeparator3" type="VSeparator" parent="PanelBG/VBoxContainer/TurnEconomy/PlayerUI"]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+theme_override_styles/separator = SubResource("StyleBoxEmpty_bbg02")
+
+[node name="ActionDisplay" type="ColorRect" parent="PanelBG/VBoxContainer/TurnEconomy/PlayerUI"]
+material = SubResource("ShaderMaterial_k6kgl")
+custom_minimum_size = Vector2(216, 56)
+layout_mode = 2
+metadata/_edit_use_anchors_ = true
+
+[node name="ActionsLabel" type="Label" parent="PanelBG/VBoxContainer/TurnEconomy/PlayerUI/ActionDisplay"]
+texture_filter = 1
+material = SubResource("ShaderMaterial_jxrjt")
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.09259259
+anchor_top = 0.30357143
+anchor_right = 0.36574075
+anchor_bottom = 0.66071427
+offset_top = -2.0
+offset_right = 19.0
+offset_bottom = 4.0
+text = "ACTIONS"
+label_settings = SubResource("LabelSettings_bbg02")
+metadata/_edit_use_anchors_ = true
+
+[node name="ActionsLeftLabel" type="Label" parent="PanelBG/VBoxContainer/TurnEconomy/PlayerUI/ActionDisplay"]
+texture_filter = 1
+material = SubResource("ShaderMaterial_jxrjt")
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.6157407
+anchor_top = 0.30357143
+anchor_right = 0.8888889
+anchor_bottom = 0.66071427
+offset_top = -2.0
+offset_bottom = 4.0
+text = "2/2"
+label_settings = SubResource("LabelSettings_n8jhx")
+horizontal_alignment = 2
+metadata/_edit_use_anchors_ = true
+
+[node name="VSeparator4" type="VSeparator" parent="PanelBG/VBoxContainer/TurnEconomy/PlayerUI"]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+theme_override_styles/separator = SubResource("StyleBoxEmpty_bbg02")
+
+[node name="ActionIcons" type="HBoxContainer" parent="PanelBG/VBoxContainer/TurnEconomy/PlayerUI"]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+
+[node name="ActionIcon" type="ColorRect" parent="PanelBG/VBoxContainer/TurnEconomy/PlayerUI/ActionIcons"]
+material = SubResource("ShaderMaterial_3jtyh")
+custom_minimum_size = Vector2(62, 87)
+layout_mode = 2
+
+[node name="ActionIcon2" type="ColorRect" parent="PanelBG/VBoxContainer/TurnEconomy/PlayerUI/ActionIcons"]
+material = SubResource("ShaderMaterial_felqg")
+custom_minimum_size = Vector2(62, 87)
+layout_mode = 2
+
+[node name="VSeparator5" type="VSeparator" parent="PanelBG/VBoxContainer/TurnEconomy/PlayerUI"]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+theme_override_styles/separator = SubResource("StyleBoxEmpty_bbg02")
+
+[node name="PassButton" type="TextureButton" parent="PanelBG/VBoxContainer/TurnEconomy/PlayerUI"]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+texture_normal = ExtResource("7_xrano")
+texture_pressed = ExtResource("8_bbg02")
+texture_hover = ExtResource("9_n8jhx")
+
+[node name="Label" type="Label" parent="PanelBG/VBoxContainer/TurnEconomy/PlayerUI/PassButton"]
+texture_filter = 1
+material = SubResource("ShaderMaterial_jxrjt")
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.29
+anchor_top = 0.09259259
+anchor_right = 0.665
+anchor_bottom = 0.8148148
+offset_top = -2.0
+offset_bottom = -2.0
+text = "Pass"
+label_settings = SubResource("LabelSettings_5iwwa")
+metadata/_edit_use_anchors_ = true
+
+[node name="HSeparator" type="HSeparator" parent="PanelBG/VBoxContainer/TurnEconomy"]
+custom_minimum_size = Vector2(20, 0)
+layout_mode = 2
+theme_override_styles/separator = SubResource("StyleBoxEmpty_n8jhx")
+
+[node name="OpponentUI" type="VBoxContainer" parent="PanelBG/VBoxContainer/TurnEconomy"]
+layout_mode = 2
+alignment = 1
+
+[node name="OpponentLabel" type="Label" parent="PanelBG/VBoxContainer/TurnEconomy/OpponentUI"]
+texture_filter = 1
+material = SubResource("ShaderMaterial_jxrjt")
+layout_mode = 2
+size_flags_horizontal = 4
+text = "OPPONENT"
+label_settings = SubResource("LabelSettings_xrano")
+
+[node name="VSeparator2" type="VSeparator" parent="PanelBG/VBoxContainer/TurnEconomy/OpponentUI"]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+theme_override_styles/separator = SubResource("StyleBoxEmpty_bbg02")
+
+[node name="Scorebox" type="ColorRect" parent="PanelBG/VBoxContainer/TurnEconomy/OpponentUI"]
+material = SubResource("ShaderMaterial_bdxum")
+custom_minimum_size = Vector2(216, 100)
+layout_mode = 2
+size_flags_vertical = 4
+
+[node name="#__" type="Label" parent="PanelBG/VBoxContainer/TurnEconomy/OpponentUI/Scorebox"]
+texture_filter = 1
+material = SubResource("ShaderMaterial_jxrjt")
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 0.01
+anchor_right = 0.32407406
+anchor_bottom = 0.99
+offset_top = -2.0
+offset_bottom = -2.0
+text = "0"
+label_settings = SubResource("LabelSettings_qaq6h")
+horizontal_alignment = 1
+vertical_alignment = 1
+metadata/_edit_use_anchors_ = true
+
+[node name="_#_" type="Label" parent="PanelBG/VBoxContainer/TurnEconomy/OpponentUI/Scorebox"]
+texture_filter = 1
+material = SubResource("ShaderMaterial_jxrjt")
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.33333334
+anchor_top = 0.01
+anchor_right = 0.6666667
+anchor_bottom = 0.99
+offset_top = -2.0
+offset_bottom = -2.0
+text = "0"
+label_settings = SubResource("LabelSettings_qaq6h")
+horizontal_alignment = 1
+vertical_alignment = 1
+metadata/_edit_use_anchors_ = true
+
+[node name="__#" type="Label" parent="PanelBG/VBoxContainer/TurnEconomy/OpponentUI/Scorebox"]
+texture_filter = 1
+material = SubResource("ShaderMaterial_jxrjt")
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.6712963
+anchor_top = 0.01
+anchor_right = 1.0046296
+anchor_bottom = 0.99
+offset_top = -2.0
+offset_bottom = -2.0
+text = "0"
+label_settings = SubResource("LabelSettings_qaq6h")
+horizontal_alignment = 1
+vertical_alignment = 1
+metadata/_edit_use_anchors_ = true
+
+[node name="VSeparator3" type="VSeparator" parent="PanelBG/VBoxContainer/TurnEconomy/OpponentUI"]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+theme_override_styles/separator = SubResource("StyleBoxEmpty_bbg02")
+
+[node name="ActionDisplay" type="ColorRect" parent="PanelBG/VBoxContainer/TurnEconomy/OpponentUI"]
+material = SubResource("ShaderMaterial_k6kgl")
+custom_minimum_size = Vector2(216, 56)
+layout_mode = 2
+metadata/_edit_use_anchors_ = true
+
+[node name="ActionsLabel" type="Label" parent="PanelBG/VBoxContainer/TurnEconomy/OpponentUI/ActionDisplay"]
+texture_filter = 1
+material = SubResource("ShaderMaterial_jxrjt")
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.09259259
+anchor_top = 0.30357143
+anchor_right = 0.36574075
+anchor_bottom = 0.66071427
+offset_top = -2.0
+offset_right = 19.0
+offset_bottom = 4.0
+text = "ACTIONS"
+label_settings = SubResource("LabelSettings_bbg02")
+metadata/_edit_use_anchors_ = true
+
+[node name="ActionsLeftLabel" type="Label" parent="PanelBG/VBoxContainer/TurnEconomy/OpponentUI/ActionDisplay"]
+texture_filter = 1
+material = SubResource("ShaderMaterial_jxrjt")
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.6157407
+anchor_top = 0.30357143
+anchor_right = 0.8888889
+anchor_bottom = 0.66071427
+offset_top = -2.0
+offset_bottom = 4.0
+text = "2/2"
+label_settings = SubResource("LabelSettings_n8jhx")
+horizontal_alignment = 2
+metadata/_edit_use_anchors_ = true
+
+[node name="VSeparator4" type="VSeparator" parent="PanelBG/VBoxContainer/TurnEconomy/OpponentUI"]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+theme_override_styles/separator = SubResource("StyleBoxEmpty_bbg02")
+
+[node name="ActionIcons" type="HBoxContainer" parent="PanelBG/VBoxContainer/TurnEconomy/OpponentUI"]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+
+[node name="ActionIcon" type="ColorRect" parent="PanelBG/VBoxContainer/TurnEconomy/OpponentUI/ActionIcons"]
+material = SubResource("ShaderMaterial_7bfds")
+custom_minimum_size = Vector2(62, 87)
+layout_mode = 2
+
+[node name="ActionIcon2" type="ColorRect" parent="PanelBG/VBoxContainer/TurnEconomy/OpponentUI/ActionIcons"]
+material = SubResource("ShaderMaterial_kry7q")
+custom_minimum_size = Vector2(62, 87)
+layout_mode = 2
+
+[node name="VSeparator5" type="VSeparator" parent="PanelBG/VBoxContainer/TurnEconomy/OpponentUI"]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+theme_override_styles/separator = SubResource("StyleBoxEmpty_bbg02")
+
+[node name="PassButton" type="TextureButton" parent="PanelBG/VBoxContainer/TurnEconomy/OpponentUI"]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+texture_normal = ExtResource("7_xrano")
+texture_pressed = ExtResource("8_bbg02")
+texture_hover = ExtResource("9_n8jhx")
+
+[node name="Label" type="Label" parent="PanelBG/VBoxContainer/TurnEconomy/OpponentUI/PassButton"]
+texture_filter = 1
+material = SubResource("ShaderMaterial_jxrjt")
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.29
+anchor_top = 0.09259259
+anchor_right = 0.665
+anchor_bottom = 0.8148148
+offset_top = -2.0
+offset_bottom = -2.0
+text = "Pass"
+label_settings = SubResource("LabelSettings_5iwwa")
+metadata/_edit_use_anchors_ = true
+
+[node name="VSeparator2" type="VSeparator" parent="PanelBG/VBoxContainer"]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+theme_override_styles/separator = SubResource("StyleBoxEmpty_bbg02")
+
+[node name="InformationScreen" type="TextureRect" parent="PanelBG/VBoxContainer"]
+material = SubResource("ShaderMaterial_5bnn7")
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+texture = ExtResource("11_iovtx")
+
+[node name="Label" type="Label" parent="PanelBG/VBoxContainer/InformationScreen"]
+texture_filter = 1
+material = SubResource("ShaderMaterial_jxrjt")
+layout_mode = 0
+offset_left = 11.0
+offset_top = 8.5
+offset_right = 440.0
+offset_bottom = 258.5
+text = "text goes here..."
+label_settings = SubResource("LabelSettings_2lcw2")
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 2
+
+[node name="VSeparator3" type="VSeparator" parent="PanelBG/VBoxContainer"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+theme_override_styles/separator = SubResource("StyleBoxEmpty_bbg02")
+
+[node name="Button" type="Button" parent="PanelBG/VBoxContainer"]
+texture_filter = 1
+material = SubResource("ShaderMaterial_8dexo")
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9254902, 0.9411765, 0.94509804, 1)
+theme_override_colors/font_hover_color = Color(0.15294118, 0.68235296, 0.3764706, 1)
+theme_override_colors/font_hover_pressed_color = Color(0.94509804, 0.76862746, 0.05882353, 1)
+theme_override_fonts/font = ExtResource("2_f8ty4")
+theme_override_font_sizes/font_size = 32
+text = "◆    options    ◆"
+flat = true

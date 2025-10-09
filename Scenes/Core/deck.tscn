@@ -1,0 +1,93 @@
+[gd_scene load_steps=14 format=3 uid="uid://gdkre2xkksra"]
+
+[ext_resource type="Shader" uid="uid://dnb21ffhlaf34" path="res://Scripts/Shader/deckPile.gdshader" id="1_nu14p"]
+[ext_resource type="Shader" uid="uid://dl18pdf50a4mb" path="res://Scripts/Shader/CardBorder.gdshader" id="2_yw5xw"]
+[ext_resource type="Shader" uid="uid://dyirwv38vux2g" path="res://Scripts/Shader/CardGradient.gdshader" id="3_1rw5a"]
+[ext_resource type="Texture2D" uid="uid://c5hggaaw5c51v" path="res://Assets/CardFramework/Logo.png" id="4_3ybx4"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_fgcbx"]
+shader = ExtResource("1_nu14p")
+shader_parameter/fill_color = Color(0.34409347, 0.39918587, 0.4128669, 1)
+shader_parameter/outline_color = Color(0.8060989, 0.84565926, 0.85553277, 1)
+shader_parameter/pixel_grid_size = 45.00000209
+shader_parameter/corner_size = 2
+
+[sub_resource type="Gradient" id="Gradient_emqev"]
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_yw5xw"]
+gradient = SubResource("Gradient_emqev")
+width = 500
+height = 700
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_hajyr"]
+shader = ExtResource("2_yw5xw")
+shader_parameter/fill_color = Color(0.9254902, 0.9411765, 0.94509804, 1)
+shader_parameter/pixel_grid_size = 45.00000209
+shader_parameter/corner_size = 2
+
+[sub_resource type="Gradient" id="Gradient_igamc"]
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_uidf1"]
+gradient = SubResource("Gradient_igamc")
+width = 500
+height = 700
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_tv0wq"]
+shader = ExtResource("3_1rw5a")
+shader_parameter/speed = 0.5
+shader_parameter/color_a = Color(0.17254902, 0.24313726, 0.3137255, 1)
+shader_parameter/color_b = Color(0.3125337, 0.41808355, 0.5239429, 1)
+shader_parameter/scale = 2.5
+
+[sub_resource type="Gradient" id="Gradient_5k18p"]
+interpolation_mode = 2
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_pln5c"]
+gradient = SubResource("Gradient_5k18p")
+width = 460
+height = 660
+fill = 1
+
+[node name="Deck" type="Node2D"]
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+modulate = Color(0.7411765, 0.7411765, 0.7411765, 1)
+material = SubResource("ShaderMaterial_fgcbx")
+position = Vector2(256, 370)
+texture = SubResource("GradientTexture2D_yw5xw")
+
+[node name="Sprite2D2" type="Sprite2D" parent="."]
+material = SubResource("ShaderMaterial_fgcbx")
+position = Vector2(264, 366)
+texture = SubResource("GradientTexture2D_yw5xw")
+
+[node name="Sprite2D3" type="Sprite2D" parent="."]
+modulate = Color(0.7411765, 0.7411765, 0.7411765, 1)
+material = SubResource("ShaderMaterial_fgcbx")
+position = Vector2(269, 362)
+texture = SubResource("GradientTexture2D_yw5xw")
+
+[node name="Sprite2D4" type="Sprite2D" parent="."]
+modulate = Color(0.7411765, 0.7411765, 0.7411765, 1)
+material = SubResource("ShaderMaterial_fgcbx")
+position = Vector2(272, 358)
+texture = SubResource("GradientTexture2D_yw5xw")
+
+[node name="Sprite2D5" type="Sprite2D" parent="."]
+modulate = Color(0.7411765, 0.7411765, 0.7411765, 1)
+material = SubResource("ShaderMaterial_fgcbx")
+position = Vector2(275, 351)
+texture = SubResource("GradientTexture2D_yw5xw")
+
+[node name="TopCard" type="Sprite2D" parent="."]
+material = SubResource("ShaderMaterial_hajyr")
+position = Vector2(288, 348)
+texture = SubResource("GradientTexture2D_uidf1")
+
+[node name="Background" type="Sprite2D" parent="TopCard"]
+material = SubResource("ShaderMaterial_tv0wq")
+texture = SubResource("GradientTexture2D_pln5c")
+
+[node name="Icon" type="Sprite2D" parent="TopCard"]
+position = Vector2(-1, -22)
+texture = ExtResource("4_3ybx4")

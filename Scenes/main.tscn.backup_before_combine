@@ -1,0 +1,397 @@
+[gd_scene load_steps=32 format=3 uid="uid://k78r5mnfr86l"]
+[ext_resource type="Shader" uid="uid://c82r54bghps0l" path="res://Scripts/Shader/TextJitter.gdshader" id="1_6iyac"]
+[ext_resource type="Shader" uid="uid://jfk447x074xf" path="res://Scripts/Shader/panelBG.gdshader" id="2_fdnlq"]
+[ext_resource type="FontFile" uid="uid://m1ywn43ipi6s" path="res://Assets/fonts/Jacquard12-Regular.ttf" id="3_jkdf5"]
+[ext_resource type="FontFile" uid="uid://cd0mg1j1e8pyd" path="res://Assets/fonts/PixelifySans-VariableFont_wght.ttf" id="4_wsu2k"]
+[ext_resource type="Shader" uid="uid://bj1asd5qhlhol" path="res://Scripts/Shader/smallDisplay.gdshader" id="5_k12tt"]
+[ext_resource type="FontFile" uid="uid://cwx8a1d8i5udy" path="res://Assets/fonts/Seven Segment.ttf" id="6_h1bgf"]
+[ext_resource type="Shader" uid="uid://b3xlk1vkq2k5b" path="res://Scripts/Shader/actionIcon.gdshader" id="7_b3802"]
+[ext_resource type="Texture2D" uid="uid://r4mhdhnpayc0" path="res://Assets/UI/Button.png" id="8_fevyy"]
+[ext_resource type="Texture2D" uid="uid://bn3yv5sw5wafi" path="res://Assets/UI/ButtonPressed.png" id="9_hibaj"]
+[ext_resource type="Texture2D" uid="uid://c2slcp3v2jn8k" path="res://Assets/UI/ButtonHover.png" id="10_pdsj5"]
+[ext_resource type="Shader" uid="uid://botwnnjgmqwq" path="res://Scripts/Shader/smallDisplay2.gdshader" id="11_ee4r6"]
+[ext_resource type="Texture2D" uid="uid://cb3vjmk6p2ucw" path="res://Assets/UI/PanelBox.png" id="12_gt3je"]
+[ext_resource type="Script" uid="uid://dt01fmi0ud6n0" path="res://Scripts/Core/main.gd" id="1_21xkr"]
+[ext_resource type="Script" uid="uid://diupc0dagbyfv" path="res://Scripts/Managers/card_manager.gd" id="1_bo1nx"]
+[ext_resource type="PackedScene" uid="uid://hicesjantdjt" path="res://Scenes/Core/interactiveCard.tscn" id="1_jjgbg"]
+[ext_resource type="Script" uid="uid://07gd83vaqvgj" path="res://Scripts/Core/parallax.gd" id="2_6bp64"]
+[ext_resource type="Shader" uid="uid://y6n83i5mjk4c" path="res://Scripts/Shader/post_processing.gdshader" id="3_8gbba"]
+[ext_resource type="PackedScene" uid="uid://gdkre2xkksra" path="res://Scenes/Core/deck.tscn" id="6_6bp64"]
+[ext_resource type="PackedScene" uid="uid://djx8niab6ivv2" path="res://Scenes/Core/discard_pile.tscn" id="7_hptm8"]
+[ext_resource type="PackedScene" uid="uid://gu4ayccbc2mf" path="res://Scenes/Core/drop_zone.tscn" id="7_ynf5e"]
+[ext_resource type="PackedScene" uid="uid://l3ep0uhlvt53" path="res://Scenes/UI/game_state_overlay.tscn" id="9_d1ilt"]
+[ext_resource type="PackedScene" uid="uid://d22ua8nju6in8" path="res://Scenes/UI/end_round_tray.tscn" id="9_fdnlq"]
+[ext_resource type="PackedScene" uid="uid://2gbx8t47wulx" path="res://Scenes/UI/backgrounds.tscn" id="9_hptm8"]
+[ext_resource type="PackedScene" uid="uid://bd7r3kr8kyerm" path="res://Scenes/UI/ui_panel.tscn" id="9_hptm8"]
+[ext_resource type="PackedScene" uid="uid://bd7r3kr8kyerm" path="res://Scenes/UI/ui_panel.tscn" id="10_d1ilt"]
+[ext_resource type="PackedScene" uid="uid://b2lihann318mb" path="res://Scenes/UI/end_game_tray.tscn" id="12_jkdf5"]
+
+
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_jxrjt"]
+shader = ExtResource("1_6iyac")
+shader_parameter/jitter_rate = 6.0000002375
+shader_parameter/jitter_amount = 0.002000000095
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_olr4l"]
+shader = ExtResource("2_fdnlq")
+shader_parameter/color1 = Color(0.17254902, 0.24313726, 0.3137255, 1)
+shader_parameter/color2 = Color(0.29957807, 0.4025216, 0.5057259, 1)
+shader_parameter/speed = 0.4230000200925
+shader_parameter/zoom = 5.902000232845
+shader_parameter/distortion = 1.3730000652175
+shader_parameter/octaves = 5
+[sub_resource type="Gradient" id="Gradient_40kas"]
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_qaq6h"]
+gradient = SubResource("Gradient_40kas")
+[sub_resource type="LabelSettings" id="LabelSettings_k6kgl"]
+font = ExtResource("3_jkdf5")
+font_size = 100
+font_color = Color(0.9254902, 0.9411765, 0.94509804, 1)
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_xrano"]
+[sub_resource type="LabelSettings" id="LabelSettings_b0c3d"]
+font = ExtResource("3_jkdf5")
+font_size = 100
+font_color = Color(0.9254902, 0.9411765, 0.94509804, 1)
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_bbg02"]
+[sub_resource type="LabelSettings" id="LabelSettings_xrano"]
+font = ExtResource("4_wsu2k")
+font_size = 18
+font_color = Color(0.9254902, 0.9411765, 0.94509804, 1)
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_bdxum"]
+shader = ExtResource("5_k12tt")
+shader_parameter/box_color = Color(0.2, 0.18, 0.22, 1)
+shader_parameter/line_color = Color(0.35, 0.35, 0.38, 1)
+shader_parameter/corner_radius = 0.26000001235
+shader_parameter/line_thickness = 0.0050000002375
+shader_parameter/line_position1 = 0.33
+shader_parameter/line_position2 = 0.67
+shader_parameter/gleam_color = Color(1, 1, 1, 0.1)
+shader_parameter/gleam_speed = 0.15
+shader_parameter/gleam_width = 0.290000013775
+[sub_resource type="LabelSettings" id="LabelSettings_qaq6h"]
+font = ExtResource("6_h1bgf")
+font_size = 64
+font_color = Color(0.94509804, 0.76862746, 0.05882353, 1)
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_k6kgl"]
+shader = ExtResource("5_k12tt")
+shader_parameter/box_color = Color(0.12156863, 0.101960786, 0.105882354, 1)
+shader_parameter/line_color = Color(0.35, 0.35, 0.38, 1)
+shader_parameter/corner_radius = 0.5
+shader_parameter/line_thickness = 0.003
+shader_parameter/line_position1 = 0.0
+shader_parameter/line_position2 = 0.0
+shader_parameter/gleam_color = Color(1, 1, 1, 0.1)
+shader_parameter/gleam_speed = 0.1510000071725
+shader_parameter/gleam_width = 0.394000018715
+[sub_resource type="LabelSettings" id="LabelSettings_bbg02"]
+font = ExtResource("6_h1bgf")
+font_size = 24
+font_color = Color(0.94509804, 0.76862746, 0.05882353, 1)
+[sub_resource type="LabelSettings" id="LabelSettings_n8jhx"]
+font = ExtResource("6_h1bgf")
+font_size = 24
+font_color = Color(0.94509804, 0.76862746, 0.05882353, 1)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_jjvhh"]
+shader = ExtResource("3_8gbba")
+shader_parameter/overlay = true
+shader_parameter/scanlines_opacity = 0.058000002755
+shader_parameter/scanlines_width = 0.14000000665
+shader_parameter/grille_opacity = 0.050000002375
+shader_parameter/resolution = Vector2(1920, 1080)
+shader_parameter/pixelate = true
+shader_parameter/roll = true
+shader_parameter/roll_speed = 2.0
+shader_parameter/roll_size = 6.000000285
+shader_parameter/roll_variation = 1.8
+shader_parameter/distort_intensity = 0.002000000095
+shader_parameter/noise_opacity = 0.01600000076
+shader_parameter/noise_speed = 5.0
+shader_parameter/static_noise_intensity = 0.03600000171
+shader_parameter/aberration = 4.7499999933364734e-08
+shader_parameter/brightness = 1.0
+shader_parameter/discolor = false
+shader_parameter/warp_amount = 0.09600000456
+shader_parameter/clip_warp = true
+shader_parameter/vignette_intensity = 0.4
+shader_parameter/vignette_opacity = 0.0750000035625
+[node name="main" type="Node2D" node_paths=PackedStringArray("discard_pile_node")]
+script = ExtResource("1_21xkr")
+cards_to_draw = 4
+discard_pile_node = NodePath("Parallax/discardPile")
+[node name="BackLayerUI" type="CanvasLayer" parent="."]
+layer = -10
+follow_viewport_enabled = true
+[node name="backgrounds" parent="BackLayerUI" instance=ExtResource("9_hptm8")]
+light_mask = 0
+random_flip = true
+[node name="Parallax" type="Control" parent="."]
+custom_minimum_size = Vector2(1920, 1080)
+layout_mode = 3
+anchors_preset = 0
+offset_right = 1920.0
+offset_bottom = 1080.0
+mouse_filter = 2
+script = ExtResource("2_6bp64")
+[node name="DropZone" parent="Parallax" instance=ExtResource("7_ynf5e")]
+position = Vector2(1080, 508)
+scale = Vector2(0.7600025, 0.9267921)
+fade_in_alpha = 0.089
+fade_in_duration = 0.197
+fade_in_ease = 2
+fade_in_trans = 6
+fade_out_ease = 2
+fade_out_trans = 9
+shader_tween_duration = 0.5690000000000001
+shader_tween_trans = 9
+shader_edge_width = 0.106
+shader_edge_color = Color(0.15294118, 0.68235296, 0.3764706, 1)
+[node name="CardManager" type="Node2D" parent="Parallax"]
+position = Vector2(-2, 0)
+script = ExtResource("1_bo1nx")
+card_scene = ExtResource("1_jjgbg")
+card_size = Vector2(200, 280)
+card_spacing = 150.0
+time_multiplier = 2.0
+[node name="InteractiveCard2" parent="Parallax" instance=ExtResource("1_jjgbg")]
+position = Vector2(1124, 958.99994)
+scale = Vector2(0.4, 0.4)
+drag_lerp_speed = 20.0
+shadow_follow_speed = 10.0
+override_edge_color = Color(1.499905, 1.499905, 1.499905, 1)
+[node name="Deck" parent="Parallax" instance=ExtResource("6_6bp64")]
+position = Vector2(1605, 670)
+scale = Vector2(0.4, 0.4)
+[node name="discardPile" parent="Parallax" instance=ExtResource("7_hptm8")]
+position = Vector2(1728, 332)
+rotation_range_degrees = 6.100000000000001
+flash_brightness = 4.0
+wiggle_offset = Vector2(12, 2)
+wiggle_duration = 1.0
+[node name="FrontLayerUI" type="CanvasLayer" parent="."]
+follow_viewport_enabled = true
+[node name="EndRoundTray" parent="FrontLayerUI" instance=ExtResource("9_fdnlq")]
+visible = false
+[node name="GameStateOverlay" parent="FrontLayerUI" instance=ExtResource("9_d1ilt")]
+visible = false
+[node name="UIPanel" parent="FrontLayerUI" instance=ExtResource("10_d1ilt")]
+[node name="EndRoundTray2" parent="FrontLayerUI" instance=ExtResource("12_jkdf5")]
+visible = false
+[node name="ColorRect" type="ColorRect" parent="FrontLayerUI"]
+material = SubResource("ShaderMaterial_jjvhh")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -132.0
+offset_top = -110.0
+offset_right = 130.0
+offset_bottom = 124.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(1, 1, 1, 0)
+metadata/_edit_lock_ = true
+[connection signal="area_entered" from="Parallax/DropZone" to="Parallax/DropZone" method="_on_area_entered"]
+texture_pressed = ExtResource("9_hibaj")
+texture_hover = ExtResource("10_pdsj5")
+[node name="Label" type="Label" parent="PanelBG/VBoxContainer/TurnEconomy/PlayerUI/PassButton"]
+texture_filter = 1
+material = SubResource("ShaderMaterial_jxrjt")
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.29
+anchor_top = 0.09259259
+anchor_right = 0.665
+anchor_bottom = 0.8148148
+offset_top = -2.0
+offset_bottom = -2.0
+text = "Pass"
+label_settings = SubResource("LabelSettings_5iwwa")
+metadata/_edit_use_anchors_ = true
+[node name="HSeparator" type="HSeparator" parent="PanelBG/VBoxContainer/TurnEconomy"]
+custom_minimum_size = Vector2(20, 0)
+layout_mode = 2
+theme_override_styles/separator = SubResource("StyleBoxEmpty_n8jhx")
+[node name="OpponentUI" type="VBoxContainer" parent="PanelBG/VBoxContainer/TurnEconomy"]
+layout_mode = 2
+alignment = 1
+[node name="OpponentLabel" type="Label" parent="PanelBG/VBoxContainer/TurnEconomy/OpponentUI"]
+texture_filter = 1
+material = SubResource("ShaderMaterial_jxrjt")
+layout_mode = 2
+size_flags_horizontal = 4
+text = "OPPONENT"
+label_settings = SubResource("LabelSettings_xrano")
+[node name="VSeparator2" type="VSeparator" parent="PanelBG/VBoxContainer/TurnEconomy/OpponentUI"]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+theme_override_styles/separator = SubResource("StyleBoxEmpty_bbg02")
+[node name="Scorebox" type="ColorRect" parent="PanelBG/VBoxContainer/TurnEconomy/OpponentUI"]
+material = SubResource("ShaderMaterial_bdxum")
+custom_minimum_size = Vector2(216, 100)
+layout_mode = 2
+size_flags_vertical = 4
+[node name="#__" type="Label" parent="PanelBG/VBoxContainer/TurnEconomy/OpponentUI/Scorebox"]
+texture_filter = 1
+material = SubResource("ShaderMaterial_jxrjt")
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 0.01
+anchor_right = 0.32407406
+anchor_bottom = 0.99
+offset_top = -2.0
+offset_bottom = -2.0
+text = "0"
+label_settings = SubResource("LabelSettings_qaq6h")
+horizontal_alignment = 1
+vertical_alignment = 1
+metadata/_edit_use_anchors_ = true
+[node name="_#_" type="Label" parent="PanelBG/VBoxContainer/TurnEconomy/OpponentUI/Scorebox"]
+texture_filter = 1
+material = SubResource("ShaderMaterial_jxrjt")
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.33333334
+anchor_top = 0.01
+anchor_right = 0.6666667
+anchor_bottom = 0.99
+offset_top = -2.0
+offset_bottom = -2.0
+text = "0"
+label_settings = SubResource("LabelSettings_qaq6h")
+horizontal_alignment = 1
+vertical_alignment = 1
+metadata/_edit_use_anchors_ = true
+[node name="__#" type="Label" parent="PanelBG/VBoxContainer/TurnEconomy/OpponentUI/Scorebox"]
+texture_filter = 1
+material = SubResource("ShaderMaterial_jxrjt")
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.6712963
+anchor_top = 0.01
+anchor_right = 1.0046296
+anchor_bottom = 0.99
+offset_top = -2.0
+offset_bottom = -2.0
+text = "0"
+label_settings = SubResource("LabelSettings_qaq6h")
+horizontal_alignment = 1
+vertical_alignment = 1
+metadata/_edit_use_anchors_ = true
+[node name="VSeparator3" type="VSeparator" parent="PanelBG/VBoxContainer/TurnEconomy/OpponentUI"]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+theme_override_styles/separator = SubResource("StyleBoxEmpty_bbg02")
+[node name="ActionDisplay" type="ColorRect" parent="PanelBG/VBoxContainer/TurnEconomy/OpponentUI"]
+material = SubResource("ShaderMaterial_k6kgl")
+custom_minimum_size = Vector2(216, 56)
+layout_mode = 2
+metadata/_edit_use_anchors_ = true
+[node name="ActionsLabel" type="Label" parent="PanelBG/VBoxContainer/TurnEconomy/OpponentUI/ActionDisplay"]
+texture_filter = 1
+material = SubResource("ShaderMaterial_jxrjt")
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.09259259
+anchor_top = 0.30357143
+anchor_right = 0.36574075
+anchor_bottom = 0.66071427
+offset_top = -2.0
+offset_right = 19.0
+offset_bottom = 4.0
+text = "ACTIONS"
+label_settings = SubResource("LabelSettings_bbg02")
+metadata/_edit_use_anchors_ = true
+[node name="ActionsLeftLabel" type="Label" parent="PanelBG/VBoxContainer/TurnEconomy/OpponentUI/ActionDisplay"]
+texture_filter = 1
+material = SubResource("ShaderMaterial_jxrjt")
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.6157407
+anchor_top = 0.30357143
+anchor_right = 0.8888889
+anchor_bottom = 0.66071427
+offset_top = -2.0
+offset_bottom = 4.0
+text = "2/2"
+label_settings = SubResource("LabelSettings_n8jhx")
+horizontal_alignment = 2
+metadata/_edit_use_anchors_ = true
+[node name="VSeparator4" type="VSeparator" parent="PanelBG/VBoxContainer/TurnEconomy/OpponentUI"]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+theme_override_styles/separator = SubResource("StyleBoxEmpty_bbg02")
+[node name="ActionIcons" type="HBoxContainer" parent="PanelBG/VBoxContainer/TurnEconomy/OpponentUI"]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+[node name="ActionIcon" type="ColorRect" parent="PanelBG/VBoxContainer/TurnEconomy/OpponentUI/ActionIcons"]
+material = SubResource("ShaderMaterial_3jtyh")
+custom_minimum_size = Vector2(62, 87)
+layout_mode = 2
+[node name="ActionIcon2" type="ColorRect" parent="PanelBG/VBoxContainer/TurnEconomy/OpponentUI/ActionIcons"]
+material = SubResource("ShaderMaterial_3jtyh")
+custom_minimum_size = Vector2(62, 87)
+layout_mode = 2
+[node name="VSeparator5" type="VSeparator" parent="PanelBG/VBoxContainer/TurnEconomy/OpponentUI"]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+theme_override_styles/separator = SubResource("StyleBoxEmpty_bbg02")
+[node name="PassButton" type="TextureButton" parent="PanelBG/VBoxContainer/TurnEconomy/OpponentUI"]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+texture_normal = ExtResource("8_fevyy")
+texture_pressed = ExtResource("9_hibaj")
+texture_hover = ExtResource("10_pdsj5")
+[node name="Label" type="Label" parent="PanelBG/VBoxContainer/TurnEconomy/OpponentUI/PassButton"]
+texture_filter = 1
+material = SubResource("ShaderMaterial_jxrjt")
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.29
+anchor_top = 0.09259259
+anchor_right = 0.665
+anchor_bottom = 0.8148148
+offset_top = -2.0
+offset_bottom = -2.0
+text = "Pass"
+label_settings = SubResource("LabelSettings_5iwwa")
+metadata/_edit_use_anchors_ = true
+[node name="VSeparator2" type="VSeparator" parent="PanelBG/VBoxContainer"]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+theme_override_styles/separator = SubResource("StyleBoxEmpty_bbg02")
+[node name="InformationScreen" type="TextureRect" parent="PanelBG/VBoxContainer"]
+material = SubResource("ShaderMaterial_5bnn7")
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+texture = ExtResource("12_gt3je")
+[node name="Label" type="Label" parent="PanelBG/VBoxContainer/InformationScreen"]
+texture_filter = 1
+material = SubResource("ShaderMaterial_jxrjt")
+layout_mode = 0
+offset_left = 11.0
+offset_top = 8.5
+offset_right = 440.0
+offset_bottom = 258.5
+text = "text goes here..."
+label_settings = SubResource("LabelSettings_2lcw2")
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 2
+[node name="VSeparator3" type="VSeparator" parent="PanelBG/VBoxContainer"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+theme_override_styles/separator = SubResource("StyleBoxEmpty_bbg02")
+[node name="Button" type="Button" parent="PanelBG/VBoxContainer"]
+texture_filter = 1
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9254902, 0.9411765, 0.94509804, 1)
+theme_override_colors/font_hover_color = Color(0.15294118, 0.68235296, 0.3764706, 1)
+theme_override_colors/font_hover_pressed_color = Color(0.94509804, 0.76862746, 0.05882353, 1)
+theme_override_fonts/font = ExtResource("3_jkdf5")
+theme_override_font_sizes/font_size = 32
+text = "◆    options    ◆"
+flat = true

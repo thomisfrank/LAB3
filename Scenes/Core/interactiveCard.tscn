@@ -1,0 +1,85 @@
+[gd_scene load_steps=9 format=3 uid="uid://hicesjantdjt"]
+
+[ext_resource type="Shader" uid="uid://b7ew8d41jwrf2" path="res://Scripts/Shader/perspective.gdshader" id="1_7ebid"]
+[ext_resource type="Script" uid="uid://bldwvpjh88qlo" path="res://Scripts/Core/interactive_card.gd" id="1_pgduw"]
+[ext_resource type="Shader" uid="uid://dl18pdf50a4mb" path="res://Scripts/Shader/CardBorder.gdshader" id="2_m41v0"]
+[ext_resource type="PackedScene" uid="uid://jk3nxgheskjr" path="res://Scenes/Core/card.tscn" id="2_sxeun"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_kpql8"]
+shader = ExtResource("2_m41v0")
+shader_parameter/fill_color = Color(0, 0, 0, 0.11764706)
+shader_parameter/pixel_grid_size = 45.00000209
+shader_parameter/corner_size = 2
+
+[sub_resource type="Gradient" id="Gradient_0mpib"]
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_yfov1"]
+gradient = SubResource("Gradient_0mpib")
+width = 500
+height = 700
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_pgduw"]
+shader = ExtResource("1_7ebid")
+shader_parameter/fov = 90.0
+shader_parameter/cull_back = true
+shader_parameter/y_rot = 0.0
+shader_parameter/x_rot = 0.0
+shader_parameter/inset = 0.0
+
+[node name="InteractiveCard" type="Node2D"]
+script = ExtResource("1_pgduw")
+max_tilt_angle = 6.0
+drag_smoothing = 5.0
+drag_lerp_speed = 200.0
+shadow_follow_speed = 0.0
+max_shadow_offset = 80.0
+shadow_y_offset = 40.0
+shadow_instant_follow = true
+wobble_speed = 5.0
+wobble_angle = 25.0
+wobble_smoothing = 10.0
+flip_duration = 0.15
+flip_trans = 9
+flip_pop_duration = 0.2
+
+[node name="Visuals" type="Node2D" parent="."]
+position = Vector2(-290, -345)
+
+[node name="Shadow" type="Sprite2D" parent="Visuals"]
+modulate = Color(0, 0, 0, 0.23921569)
+z_index = -6
+z_as_relative = false
+material = SubResource("ShaderMaterial_kpql8")
+position = Vector2(-15, 50)
+texture = SubResource("GradientTexture2D_yfov1")
+offset = Vector2(250, 350)
+
+[node name="CardViewport" type="SubViewportContainer" parent="Visuals"]
+material = SubResource("ShaderMaterial_pgduw")
+custom_minimum_size = Vector2(500, 700)
+offset_left = 44.0
+offset_right = 544.0
+offset_bottom = 700.0
+mouse_filter = 0
+
+[node name="SubViewport" type="SubViewport" parent="Visuals/CardViewport"]
+transparent_bg = true
+handle_input_locally = false
+size = Vector2i(500, 700)
+render_target_update_mode = 4
+
+[node name="Card" parent="Visuals/CardViewport/SubViewport" instance=ExtResource("2_sxeun")]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -256.0
+offset_top = -350.0
+offset_right = 244.0
+offset_bottom = 350.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[connection signal="mouse_entered" from="Visuals/CardViewport" to="." method="_on_display_mouse_entered"]
+[connection signal="mouse_exited" from="Visuals/CardViewport" to="." method="_on_display_mouse_exited"]

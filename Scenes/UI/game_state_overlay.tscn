@@ -1,0 +1,45 @@
+[gd_scene load_steps=5 format=3 uid="uid://l3ep0uhlvt53"]
+
+[ext_resource type="Shader" uid="uid://c82r54bghps0l" path="res://Scripts/Shader/TextJitter.gdshader" id="1_vx83i"]
+[ext_resource type="FontFile" uid="uid://m1ywn43ipi6s" path="res://Assets/fonts/Jacquard12-Regular.ttf" id="2_grodh"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_hljrp"]
+shader = ExtResource("1_vx83i")
+shader_parameter/jitter_rate = 8.0
+shader_parameter/jitter_amount = 0.003
+
+[sub_resource type="LabelSettings" id="LabelSettings_4rgus"]
+font = ExtResource("2_grodh")
+font_size = 200
+font_color = Color(0.9254902, 0.9411765, 0.94509804, 1)
+
+[node name="GameStateOverlay" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="CenterContainer" type="AspectRatioContainer" parent="."]
+custom_minimum_size = Vector2(1920, 1080)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ColorRect" type="ColorRect" parent="CenterContainer"]
+custom_minimum_size = Vector2(1920, 1080)
+layout_mode = 2
+color = Color(0.17254902, 0.24313726, 0.3137255, 0.37254903)
+
+[node name="GameState" type="Label" parent="CenterContainer"]
+material = SubResource("ShaderMaterial_hljrp")
+layout_mode = 2
+size_flags_horizontal = 8
+text = "Opponent's 
+Turn"
+label_settings = SubResource("LabelSettings_4rgus")
+vertical_alignment = 1
