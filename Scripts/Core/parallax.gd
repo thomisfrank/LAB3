@@ -1,8 +1,10 @@
 extends Control
 
-# The maximum distance (in pixels) the background will shift.
+# Parallax motion settings
+@export_group("Parallax Motion")
 @export var max_offset: Vector2 = Vector2(25, 25)
 
+@export_group("Parallax Smoothing")
 # How smoothly the background follows the mouse. Higher is faster.
 @export var smoothing: float = 2.0
 

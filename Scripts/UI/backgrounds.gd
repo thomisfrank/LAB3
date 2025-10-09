@@ -4,6 +4,7 @@ extends Node
 
 # Configuration
 ### Configuration
+@export_group("Background Randomization")
 # randomize_on_ready: Randomize background on ready
 @export var randomize_on_ready: bool = true
 # randomize_shader_speed: Randomize shader speed for backgrounds
@@ -16,6 +17,8 @@ extends Node
 @export var randomize_direction: bool = true
 # random_flip: Randomly flip background
 @export var random_flip: bool = false
+
+@export_group("Debug")
 # debug_logging: Toggle for debug print statements
 @export var debug_logging: bool = false
 
@@ -61,7 +64,8 @@ func show_background_by_name(requested_name: String) -> bool:
 	if found_texture:
 		found_texture.visible = true
 		if debug_logging:
-			print("[Backgrounds] Set background to: %s" % requested_name)
+			pass
+			# print("[Backgrounds] Set background to: %s" % requested_name)
 		return true
 	else:
 		push_warning("[Backgrounds] Background with name '%s' not found." % requested_name)
@@ -103,7 +107,8 @@ func _find_and_apply():
 	if bg_node:
 		_choose_random_background(bg_node)
 	elif debug_logging:
-		print("[Backgrounds] Could not find a 'backgrounds' node to apply settings to.")
+		pass
+		# print("[Backgrounds] Could not find a 'backgrounds' node to apply settings to.")
 
 
 # Chooses and applies a random background texture from the available candidates.
@@ -141,7 +146,8 @@ func _choose_random_background(bg_node: Node) -> void:
 	_apply_random_effects(picked)
 
 	if debug_logging or Engine.is_editor_hint():
-		print("[Backgrounds] Picked background: %s" % picked.name)
+		pass
+		# print("[Backgrounds] Picked background: %s" % picked.name)
 
 
 # Applies randomized shader and flip effects to the chosen background.

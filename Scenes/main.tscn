@@ -46,6 +46,7 @@ shader_parameter/vignette_opacity = 0.0750000035625
 script = ExtResource("1_21xkr")
 cards_to_draw = 4
 discard_pile_node = NodePath("Parallax/discardPile")
+metadata/_edit_vertical_guides_ = [803.0, 990.0, 1182.0, 1355.0]
 
 [node name="Managers" type="Node" parent="."]
 
@@ -64,13 +65,11 @@ inactive_player_opacity = 0.2
 action_pop_scale = 1.05
 action_pop_rotation_degrees = 8.0
 action_pop_grow_time = 0.02
-end_of_actions_delay = 0.8
+end_of_actions_delay = 0.3
 
 [node name="UIManager" type="Node" parent="Managers"]
 script = ExtResource("1_uim")
 loading_opacity = 100.0
-panels_off_alpha = null
-panels_on_alpha = null
 
 [node name="AIManager" type="Node" parent="Managers"]
 script = ExtResource("5_h1bgf")
@@ -92,7 +91,7 @@ mouse_filter = 2
 script = ExtResource("2_6bp64")
 
 [node name="DropZone" parent="Parallax" instance=ExtResource("7_ynf5e")]
-position = Vector2(1080, 508)
+position = Vector2(1080, 529)
 scale = Vector2(0.7600025, 0.9267921)
 fade_in_alpha = 0.089
 fade_in_duration = 0.197
@@ -106,18 +105,55 @@ shader_edge_width = 0.106
 shader_edge_color = Color(0.15294118, 0.68235296, 0.3764706, 1)
 
 [node name="CardManager" type="Node2D" parent="Parallax"]
-position = Vector2(-2, 0)
 script = ExtResource("1_bo1nx")
 card_scene = ExtResource("1_jjgbg")
+draw_base_duration = 0.4
 draw_stagger = 0.08
+
+[node name="HandSlots" type="Node2D" parent="Parallax"]
+
+[node name="HandSlot0" type="Node2D" parent="Parallax/HandSlots"]
+position = Vector2(806, 901.99994)
+rotation = -0.5194271
+
+[node name="HandSlot1" type="Node2D" parent="Parallax/HandSlots"]
+position = Vector2(989.00006, 844)
+rotation = -0.09155666
+
+[node name="HandSlot2" type="Node2D" parent="Parallax/HandSlots"]
+position = Vector2(1181, 846.9998)
+rotation = 0.16236253
+
+[node name="HandSlot3" type="Node2D" parent="Parallax/HandSlots"]
+position = Vector2(1355, 893)
+rotation = 0.3920921
+
+[node name="OpponentHandSlots" type="Node2D" parent="Parallax"]
+
+[node name="OpponentSlot0" type="Node2D" parent="Parallax/OpponentHandSlots"]
+position = Vector2(1042, 162)
+rotation = 0.15
+
+[node name="OpponentSlot1" type="Node2D" parent="Parallax/OpponentHandSlots"]
+position = Vector2(1190, 176)
+rotation = 0.05
+
+[node name="OpponentSlot2" type="Node2D" parent="Parallax/OpponentHandSlots"]
+position = Vector2(1330, 163.00002)
+rotation = -0.05
+
+[node name="OpponentSlot3" type="Node2D" parent="Parallax/OpponentHandSlots"]
+position = Vector2(1470, 115)
+rotation = -0.15
 
 [node name="Deck" parent="Parallax" instance=ExtResource("6_6bp64")]
 position = Vector2(1605, 670)
 scale = Vector2(0.4, 0.4)
 
 [node name="discardPile" parent="Parallax" instance=ExtResource("7_hptm8")]
-position = Vector2(1728, 332)
-rotation_range_degrees = 6.100000000000001
+position = Vector2(1732, 328)
+rotation_range_degrees = 3.200000000000003
+position_offset_range_pixels = Vector2(5.5, 5.5)
 flash_brightness = 4.0
 wiggle_offset = Vector2(12, 2)
 wiggle_duration = 1.0

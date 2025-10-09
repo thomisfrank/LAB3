@@ -4,6 +4,7 @@ extends Area2D
 
 @export_category("Fade Animation")
 @export_range(0.0, 1.0) var fade_in_alpha: float = 0.4  # Target alpha when card is dragging
+# Hand repositioning removed - cards stay in their original positions
 @export_range(0.0, 1.0) var fade_out_alpha: float = 0.0  # Target alpha when no drag
 @export_range(0.1, 2.0) var fade_in_duration: float = 0.3  # How long fade-in takes
 @export_range(0.1, 2.0) var fade_out_duration: float = 0.3  # How long fade-out takes
@@ -87,10 +88,23 @@ func contains_global_position(pos: Vector2) -> bool:
 
 # Called by cards when dropped in this zone
 func on_card_dropped(card_node: Node) -> void:
+	# --- Card Repositioning ---
+	# Move the card to the center of the drop zone
+	card_node.global_position = global_position
+
+	# Check if the card is a player card or an opponent card
+	if card_node.is_player_card:
+		# Player's card should be upright
+		card_node.rotation = 0.0
+	else:
+		# Opponent's card should be rotated 180 degrees
+		card_node.rotation = PI
+
 	if card_node.has_method("apply_disintegration"):
 		card_node.apply_disintegration(disintegration_shader, shader_start_progress, shader_target_progress, shader_tween_duration, shader_tween_ease, shader_tween_trans)
 	else:
-		print("DropZone: card doesn't have apply_disintegration method")
+		pass
+		# print("DropZone: card doesn't have apply_disintegration method")
 
 	# Notify TurnManager that an action was played (for now, any card dropped counts)
 	var gm = get_node_or_null("/root/GameManager")
@@ -105,22 +119,3 @@ func on_card_dropped(card_node: Node) -> void:
 		if card_node.has_method("get") and "is_player_card" in card_node:
 			is_player_card = card_node.is_player_card
 		tm.record_action_played(is_player_card)
-	
-	# Re-layout the hand to fill the gap left by the played card
-	var cm = get_node_or_null("/root/main/Parallax/CardManager")
-	if not cm and gm and gm.has_method("get_manager"):
-		cm = gm.get_manager("CardManager")
-	if cm and cm.has_method("relayout_hand"):
-		# Determine hand center based on player or opponent (use a reasonable default)
-		var is_player_card = true
-		if card_node.has_method("get") and "is_player_card" in card_node:
-			is_player_card = card_node.is_player_card
-		# Get hand center from RoundManager or use default player hand position
-		var rm = gm.get_manager("RoundManager") if gm else null
-		var hand_center = Vector2(960, 800) if is_player_card else Vector2(960, 280)  # Default positions
-		if rm:
-			if is_player_card and "player_hand_center" in rm:
-				hand_center = rm.player_hand_center
-			elif not is_player_card and "opponent_hand_center" in rm:
-				hand_center = rm.opponent_hand_center
-		cm.relayout_hand(hand_center, is_player_card)

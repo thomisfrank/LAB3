@@ -38,7 +38,7 @@ func _ready() -> void:
 	# 1. Initialize scores
 	total_scores[Player.PLAYER_ONE] = 0
 	total_scores[Player.PLAYER_TWO] = 0
-	print("GameManager: _ready called (autoload). managers container:", get_parent())
+	# print("GameManager: _ready called (autoload). managers container:", get_parent())
 	
 	# 2. Find other managers in the scene 
 	# Try to resolve managers from the scene tree (if GameManager is placed in-scene)
@@ -52,14 +52,14 @@ func _ready() -> void:
 	# Also try to get CardManager from Parallax if not found in Managers
 	if not card_manager:
 		card_manager = get_node_or_null("/root/main/Parallax/CardManager")
-		print("GameManager: CardManager found at /root/main/Parallax/CardManager")
+		# print("GameManager: CardManager found at /root/main/Parallax/CardManager")
 
 	# If this script is used as an autoload (singleton) then other managers
 	# should register themselves using register_manager(). We avoid hard
 	# failing here because order of _ready() calls is not guaranteed.
 	
 	# 3. Start the game setup (deferred so scene nodes can finish _ready and register)
-	print("GameManager: deferring set_game_state(SETUP)")
+	# print("GameManager: deferring set_game_state(SETUP)")
 	call_deferred("set_game_state", GameState.SETUP)
 
 
@@ -70,7 +70,7 @@ func set_game_state(new_state: int) -> void:
 	if current_game_state == new_state:
 		return
 
-	print("GameManager: Game State Transition: %s -> %s" % [GameState.keys()[current_game_state], GameState.keys()[new_state]])
+	# print("GameManager: Game State Transition: %s -> %s" % [GameState.keys()[current_game_state], GameState.keys()[new_state]])
 	current_game_state = new_state
 	
 	# Emit a signal so other managers can react to state changes
@@ -93,7 +93,7 @@ func set_game_state(new_state: int) -> void:
 
 func _handle_setup() -> void:
 	# 1. Card deck initialization not needed - CardManager draws cards on demand
-	print("GameManager: _handle_setup, card_manager is:", card_manager)
+	# print("GameManager: _handle_setup, card_manager is:", card_manager)
 	
 	# 2. If there's a UIManager, play the start sequence and wait for it to finish
 	# Ensure ui_manager is resolved (try registered managers if autoloaded)
@@ -104,7 +104,7 @@ func _handle_setup() -> void:
 		# Fallback: try scene path
 		ui_manager = get_node_or_null("/root/main/FrontLayerUI/UIPanel")
 
-	print("GameManager: _handle_setup, ui_manager is:", ui_manager)
+	# print("GameManager: _handle_setup, ui_manager is:", ui_manager)
 
 	# Show the static loading overlay at setup if UIManager supports it
 	if ui_manager and ui_manager.has_method("show_loading"):
@@ -123,7 +123,7 @@ func _handle_setup() -> void:
 	if ui_manager and ui_manager.has_method("show_game_start_sequence"):
 		# Show sequence: pass first round number and who starts (default to player)
 		var is_player_start = true
-		print("GameManager: calling show_game_start_sequence on UIManager")
+		# print("GameManager: calling show_game_start_sequence on UIManager")
 		ui_manager.connect("start_sequence_finished", Callable(self, "_on_start_sequence_finished"))
 		ui_manager.show_game_start_sequence(1, is_player_start)
 	else:
@@ -140,7 +140,7 @@ func _on_start_sequence_finished() -> void:
 
 func _on_draw_started() -> void:
 	# Called when CardManager begins drawing cards. Hide the static loading overlay
-	print("GameManager: detected draw_started from CardManager; hiding loading overlay")
+	# print("GameManager: detected draw_started from CardManager; hiding loading overlay")
 	if ui_manager and ui_manager.has_method("hide_loading"):
 		ui_manager.hide_loading()
 
@@ -153,7 +153,7 @@ func _handle_round_start() -> void:
 	# The RoundManager handles card drawing and deciding the first player.
 	if round_manager:
 		var starting_player: int = _determine_starting_player()
-		print("GameManager: instructing RoundManager to start new round with starter=", starting_player)
+		# print("GameManager: instructing RoundManager to start new round with starter=", starting_player)
 		round_manager.start_new_round(starting_player) # Assuming a method named 'start_new_round'
 
 	# Once RoundManager is done with setup, it calls back:
@@ -210,7 +210,7 @@ func add_score(player: int, points: int) -> void:
 # Managers registration API (useful when GameManager is an autoload singleon)
 func register_manager(mgr_name: String, node: Node) -> void:
 	managers[mgr_name] = node
-	print("GameManager: register_manager -> ", mgr_name, node)
+	# print("GameManager: register_manager -> ", mgr_name, node)
 	match mgr_name:
 		"CardManager":
 			card_manager = node

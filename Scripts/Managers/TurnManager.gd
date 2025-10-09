@@ -11,6 +11,7 @@ var current_player: int = 0  # Use GameManager.Player enum semantics: 0 = PLAYER
 var is_player_turn: bool = true
 
 # --- Action Tracking ---
+@export_group("Turn Settings")
 @export var actions_per_turn: int = 2
 var player_actions_remaining: int = 0
 var opponent_actions_remaining: int = 0
@@ -23,7 +24,7 @@ func _schedule_turn_transition(delay: float) -> void:
 	# Increment id to invalidate previous schedules
 	_turn_transition_id += 1
 	var this_id = _turn_transition_id
-	print("TurnManager: scheduling turn transition in", delay, "seconds (id=", this_id, ")")
+	# print("TurnManager: scheduling turn transition in", delay, "seconds (id=", this_id, ")")
 	# Defer to a helper that awaits a scene-tree timer so we don't block
 	call_deferred("_delayed_transition", delay, this_id)
 
@@ -35,9 +36,10 @@ func _delayed_transition(delay: float, id: int) -> void:
 func _execute_scheduled_transition(id: int) -> void:
 	# Only execute if id matches latest
 	if id != _turn_transition_id:
-		print("TurnManager: scheduled transition id", id, "cancelled (current=", _turn_transition_id, ")")
+		pass
+		# print("TurnManager: scheduled transition id", id, "cancelled (current=", _turn_transition_id, ")")
 		return
-	print("TurnManager: executing scheduled transition id", id)
+	# print("TurnManager: executing scheduled transition id", id)
 	# Ensure ui_manager is resolved (registration order may vary)
 	if not ui_manager and game_manager and game_manager.has_method("get_manager"):
 		ui_manager = game_manager.get_manager("UIManager")
@@ -54,22 +56,26 @@ func _execute_scheduled_transition(id: int) -> void:
 	next_turn()
 
 # --- UI Opacity Settings ---
+@export_group("UI Opacity Settings")
 @export var active_player_opacity: float = 1.0
 @export var inactive_player_opacity: float = 0.4
 @export var opacity_transition_duration: float = 0.3
 
 # --- Action icon pop tuning ---
+@export_group("Action Icon Pop")
 @export var action_pop_scale: float = 1.35
 @export var action_pop_rotation_degrees: float = 12.0
 @export var action_pop_grow_time: float = 0.09
 @export var action_pop_settle_time: float = 0.2
 
+@export_group("Misc")
 # If false, action icons will be visually unfilled at game/round start even if counts are full
 @export var fill_icons_on_start: bool = false
 @export var end_of_actions_delay: float = 2.0
 
 func _ready() -> void:
-	print("TurnManager: _ready called")
+	pass
+	# print("TurnManager: _ready called")
 	
 	# Try to get GameManager via autoload (singleton) first
 	game_manager = get_node_or_null("/root/GameManager")
@@ -84,23 +90,27 @@ func _ready() -> void:
 	if game_manager and game_manager.has_method("get_manager"):
 		ui_manager = game_manager.get_manager("UIManager")
 		card_manager = game_manager.get_manager("CardManager")
-		print("TurnManager: ui_manager from GameManager =", ui_manager)
-		print("TurnManager: card_manager from GameManager =", card_manager)
+		# print("TurnManager: ui_manager from GameManager =", ui_manager)
+		# print("TurnManager: card_manager from GameManager =", card_manager)
 
 	# If we have a GameManager autoload, register ourselves
 	if game_manager and game_manager.has_method("register_manager"):
-		print("TurnManager: registering with GameManager")
+		pass
+		# print("TurnManager: registering with GameManager")
 		game_manager.register_manager("TurnManager", self)
 	else:
-		print("TurnManager: GameManager not found on register step or no register method")
+		pass
+		# print("TurnManager: GameManager not found on register step or no register method")
 
 	# Ensure we have critical references
 	if not game_manager:
 		push_error("TurnManager: GameManager not found (autoload or parent).")
 	if not ui_manager:
-		print("TurnManager: UIManager not found (will try to fetch later).")
+		pass
+		# print("TurnManager: UIManager not found (will try to fetch later).")
 	if not card_manager:
-		print("TurnManager: CardManager not found (will try to fetch later).")
+		pass
+		# print("TurnManager: CardManager not found (will try to fetch later).")
 
 	# Immediately clear action icon fills on ready to avoid any initial green flash
 	if not fill_icons_on_start:
@@ -122,7 +132,8 @@ func _ready() -> void:
 
 ## Called by RoundManager or GameManager to start turn management
 func start_turn_management(starting_player: int) -> void:
-	print("TurnManager: Starting turn management with player", starting_player)
+	pass
+	# print("TurnManager: Starting turn management with player", starting_player)
 	current_player = starting_player
 	# Consider PLAYER_ONE (0) as the local player
 	is_player_turn = (current_player == 0)
@@ -135,7 +146,7 @@ func start_turn_management(starting_player: int) -> void:
 		player_actions_remaining = 0
 		opponent_actions_remaining = actions_per_turn
 
-	print("TurnManager: initial state -> current_player:", current_player, "is_player_turn:", is_player_turn, "player_actions:", player_actions_remaining, "opponent_actions:", opponent_actions_remaining)
+	# print("TurnManager: initial state -> current_player:", current_player, "is_player_turn:", is_player_turn, "player_actions:", player_actions_remaining, "opponent_actions:", opponent_actions_remaining)
 
 	_update_ui_opacity()
 	_update_action_ui()
@@ -185,7 +196,7 @@ func next_turn() -> void:
 	current_player = 1 if current_player == 0 else 0
 	is_player_turn = (current_player == 0)
 	
-	print("TurnManager: Switched to player", current_player, "turn")
+	# print("TurnManager: Switched to player", current_player, "turn")
 	
 	# Update UI opacity
 	_update_ui_opacity()
@@ -204,7 +215,8 @@ func next_turn() -> void:
 
 ## Update UI opacity based on whose turn it is
 func _update_ui_opacity() -> void:
-	print("TurnManager: Updating UI opacity - Player turn:", is_player_turn)
+	pass
+	# print("TurnManager: Updating UI opacity - Player turn:", is_player_turn)
 
 	# Decide opacities for each side
 	var player_opacity = active_player_opacity if is_player_turn else inactive_player_opacity
@@ -212,7 +224,8 @@ func _update_ui_opacity() -> void:
 
 	# Also inform UIManager (if present) for immediate effect
 	if ui_manager and ui_manager.has_method("set_active_player"):
-		print("TurnManager: calling ui_manager.set_active_player(", is_player_turn, ")")
+		pass
+		# print("TurnManager: calling ui_manager.set_active_player(", is_player_turn, ")")
 		ui_manager.set_active_player(is_player_turn)
 
 	_set_side_ui_opacity("PlayerUI", player_opacity)
@@ -230,11 +243,12 @@ func _update_action_ui() -> void:
 		var enable_pass = is_player_turn and player_actions_remaining > 0
 		ui_manager.set_pass_button_enabled(enable_pass)
 
-	print("TurnManager: action UI updated -> player_actions_remaining:", player_actions_remaining, "opponent_actions_remaining:", opponent_actions_remaining, "is_player_turn:", is_player_turn)
+	# print("TurnManager: action UI updated -> player_actions_remaining:", player_actions_remaining, "opponent_actions_remaining:", opponent_actions_remaining, "is_player_turn:", is_player_turn)
 
 ## Set action icons and label for a side
 func _set_action_ui(side_name: String, remaining: int, total: int) -> void:
-	print("TurnManager: _set_action_ui called for", side_name, "remaining:", remaining, "total:", total)
+	pass
+	# print("TurnManager: _set_action_ui called for", side_name, "remaining:", remaining, "total:", total)
 	# Try UIManager cached references first
 	var actions_panel: Node = null
 	var actions_label: Node = null
@@ -266,10 +280,10 @@ func _set_action_ui(side_name: String, remaining: int, total: int) -> void:
 	# Update label
 	if actions_label:
 		# Debug: report the label node and its path if possible
-		var label_path = "<unknown>"
+		var _label_path = "<unknown>"
 		if actions_label.has_method("get_path"):
-			label_path = str(actions_label.get_path())
-		print("TurnManager: found actions_label for", side_name, "->", actions_label, "path:", label_path)
+			_label_path = str(actions_label.get_path())
+		# print("TurnManager: found actions_label for", side_name, "->", actions_label, "path:", label_path)
 
 		# If there are no actions configured for this mode, hide the label text
 		if total <= 0:
@@ -277,7 +291,7 @@ func _set_action_ui(side_name: String, remaining: int, total: int) -> void:
 				actions_label.set_text("")
 			else:
 				actions_label.text = ""
-			print("TurnManager: actions_per_turn is 0, hiding actions label for", side_name)
+			# print("TurnManager: actions_per_turn is 0, hiding actions label for", side_name)
 		else:
 			var new_text = "%d/%d" % [remaining, total]
 			# Prefer calling set_text if present, else set property
@@ -285,9 +299,10 @@ func _set_action_ui(side_name: String, remaining: int, total: int) -> void:
 				actions_label.set_text(new_text)
 			else:
 				actions_label.text = new_text
-			print("TurnManager: Updated actions_label (", side_name, ") to:", new_text)
+			# print("TurnManager: Updated actions_label (", side_name, ") to:", new_text)
 	else:
-		print("TurnManager: No actions_label found for", side_name)
+		pass
+		# print("TurnManager: No actions_label found for", side_name)
 
 	# Update icons fill
 	if actions_panel:
@@ -348,7 +363,8 @@ func record_action_played(is_player_card: bool) -> void:
 			if player_actions_remaining == 0:
 				_schedule_turn_transition(end_of_actions_delay)
 		else:
-			print("TurnManager: player attempted to play with no actions remaining")
+			pass
+			# print("TurnManager: player attempted to play with no actions remaining")
 	else:
 		if opponent_actions_remaining > 0:
 			opponent_actions_remaining -= 1
@@ -357,7 +373,8 @@ func record_action_played(is_player_card: bool) -> void:
 			if opponent_actions_remaining == 0:
 				_schedule_turn_transition(end_of_actions_delay)
 		else:
-			print("TurnManager: opponent attempted to play with no actions remaining")
+			pass
+			# print("TurnManager: opponent attempted to play with no actions remaining")
 
 	_update_action_ui()
 
@@ -382,26 +399,30 @@ func _set_side_ui_opacity(side_name: String, opacity: float) -> void:
 		elif side_name == "OpponentUI" and ui_manager.opponent_actions_panel:
 			panel = ui_manager.opponent_actions_panel
 		if panel:
-			print("TurnManager: Found %s via UIManager" % side_name)
+			pass
+			# print("TurnManager: Found %s via UIManager" % side_name)
 
 	# Preferred scene location (current layout)
 	if not panel:
 		var base_path = "/root/main/FrontLayerUI/UIPanel/PanelBG/VBoxContainer/TurnEconomy/"
 		panel = get_node_or_null(base_path + side_name)
 		if panel:
-			print("TurnManager: Found %s at %s" % [side_name, base_path + side_name])
+			pass
+			# print("TurnManager: Found %s at %s" % [side_name, base_path + side_name])
 	# Legacy fallback
 	if not panel:
 		var legacy_base = "/root/main/PanelBG/VBoxContainer/TurnEconomy/"
 		panel = get_node_or_null(legacy_base + side_name)
 		if panel:
-			print("TurnManager: Found %s at %s" % [side_name, legacy_base + side_name])
+			pass
+			# print("TurnManager: Found %s at %s" % [side_name, legacy_base + side_name])
 
 	if not panel:
-		print("TurnManager: Could not find %s in any known location" % side_name)
+		pass
+		# print("TurnManager: Could not find %s in any known location" % side_name)
 		return
 
-	print("TurnManager: Setting %s opacity to" % side_name, opacity)
+	# print("TurnManager: Setting %s opacity to" % side_name, opacity)
 	_animate_ui_opacity(panel, opacity)
 
 	# Also try to dim any action icons (ColorRect children with ShaderMaterial) under an ActionIcons container

@@ -1,6 +1,7 @@
 extends Node2D
 
 # Adjust these values in the Inspector to change how messy the pile is
+@export_group("Pile Randomization")
 @export_range(-45, 45, 0.1) var rotation_range_degrees: float = 15.0
 @export var position_offset_range_pixels: Vector2 = Vector2(10, 10)
 
@@ -30,11 +31,13 @@ extends Node2D
 func add_card(card: Node) -> void:
 	"""Add a card to the discard pile with polish effects."""
 	if not is_instance_valid(card):
-		print("DiscardPile: Card is not valid.")
+		pass
+		# print("DiscardPile: Card is not valid.")
 		return
 	
 	if not card.is_inside_tree():
-		print("DiscardPile: Card is not in the scene tree.")
+		pass
+		# print("DiscardPile: Card is not in the scene tree.")
 		return
 
 	# Remove the card from its current parent
@@ -58,9 +61,9 @@ func add_card(card: Node) -> void:
 		var display_container = card.get_node("Visuals/CardViewport")
 		display_container.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
-	# Randomize Rotation
-	var random_rotation = randf_range(-rotation_range_degrees, rotation_range_degrees)
-	card.rotation_degrees = random_rotation
+	# Randomize Rotation - ADD to existing rotation instead of replacing it
+	var random_rotation_radians = deg_to_rad(randf_range(-rotation_range_degrees, rotation_range_degrees))
+	card.rotation = random_rotation_radians  # Reset to face-up with small random rotation
 
 	# Randomize Position Offset
 	var random_offset_x = randf_range(-position_offset_range_pixels.x, position_offset_range_pixels.x)

@@ -1,5 +1,6 @@
 extends Button
 
+@export_group("Card Reference")
 @export var card_node_path: NodePath  # Assign the InteractiveCard scene in the Inspector.
 
 # This function is connected via the editor's "Node -> Signals" tab.

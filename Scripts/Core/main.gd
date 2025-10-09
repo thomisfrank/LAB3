@@ -1,5 +1,6 @@
 extends Node2D
 
+@export_group("Scene References")
 # Path to the Parallax node (set in the Inspector if you move it)
 @export var parallax_path: NodePath = NodePath("Parallax")
 
@@ -7,8 +8,7 @@ extends Node2D
 @export var cards_to_draw: int = 5
 @export var hand_center_pos: Vector2 = Vector2(600, 500)
 
-    # --- Discard Pile ---
-
+@export_group("Discard Pile")
 # Drag and drop your DiscardPile node here in the Inspector
 @export var discard_pile_node: Node2D
 
@@ -48,8 +48,16 @@ func _on_draw_button_pressed():
 # Pass the card's node to it, and it will be added to the discard pile.
 func add_to_discard_pile(card):
 	if not is_instance_valid(discard_pile_node):
-		print("Error: Discard pile node is not valid. Make sure it's set in the Inspector!")
+		pass
+		# print("Error: Discard pile node is not valid. Make sure it's set in the Inspector!")
 		return
 	
 	# Delegate to the discard pile's add_card method
 	discard_pile_node.add_card(card)
+
+	# After moving a card to discard, relayout both hands to fill gaps
+	if parallax_node:
+		var cm = parallax_node.get_node_or_null("CardManager")
+		if cm and cm.has_method("relayout_hand"):
+			cm.relayout_hand(true)  # Relayout player hand
+			cm.relayout_hand(false)  # Relayout opponent hand
