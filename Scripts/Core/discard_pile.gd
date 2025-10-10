@@ -63,8 +63,12 @@ func add_card(card: Node) -> void:
 		var display_container = card.get_node("Visuals/CardViewport")
 		display_container.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
-	# Place the card at the discard pile's global position, then randomize local offset and rotation
-	card.global_position = self.global_position
+	# Reset the visuals rotation to 0 (in case opponent cards have rotated visuals)
+	if card.has_node("Visuals"):
+		var visuals = card.get_node("Visuals")
+		visuals.rotation = 0.0
+
+	# Randomize rotation
 	var configured_range = rotation_range_degrees
 	# Guard: if someone set an absurd value in the inspector, clamp it to +/-15 degrees
 	var safe_range = clamp(abs(configured_range), 0.0, 15.0)
@@ -74,11 +78,10 @@ func add_card(card: Node) -> void:
 	var biased = sign(r) * pow(abs(r), rotation_bias_exponent)
 	var random_deg = biased * safe_range
 	var random_rotation_radians = deg_to_rad(random_deg)
-	# Debug log to help diagnose unexpected rotations
-	# print("DiscardPile: configured_range=", configured_range, "safe_range=", safe_range, "applied_deg=", random_deg, "card_before_rot(deg)=", rad_to_deg(card.rotation))
 	card.rotation = random_rotation_radians  # small random rotation
-	# print("DiscardPile: card_after_rot(deg)=", rad_to_deg(card.rotation))
-	# Randomize local Position Offset around pile center
+	
+	# Randomize local position offset around pile center
+	# Since card is now a child of discard pile, use local position only
 	var random_offset_x = randf_range(-position_offset_range_pixels.x, position_offset_range_pixels.x)
 	var random_offset_y = randf_range(-position_offset_range_pixels.y, position_offset_range_pixels.y)
 	card.position = Vector2(random_offset_x, random_offset_y)

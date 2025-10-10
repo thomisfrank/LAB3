@@ -94,7 +94,7 @@ mouse_filter = 2
 script = ExtResource("2_6bp64")
 
 [node name="DropZone" parent="Parallax" instance=ExtResource("7_ynf5e")]
-position = Vector2(1080, 501)
+position = Vector2(1080, 500.00003)
 scale = Vector2(0.7600025, 0.9267921)
 fade_in_alpha = 0.089
 fade_in_duration = 0.197

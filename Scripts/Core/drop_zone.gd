@@ -101,13 +101,7 @@ func on_card_dropped(card_node: Node, snap: bool = true, _disintegrate: bool = t
 			# Card was not dropped inside this zone; ignore
 			return
 
-	# Check if the card is a player card or an opponent card
-	if card_node.is_player_card:
-		# Player's card should be upright
-		card_node.rotation = 0.0
-	else:
-		# Opponent's card should be rotated 180 degrees
-		card_node.rotation = PI
+	# Don't change rotation - let cards keep their current orientation (upside-down for opponent, upright for player)
 
 	if _disintegrate and card_node.has_method("apply_disintegration"):
 		card_node.apply_disintegration(disintegration_shader, shader_start_progress, shader_target_progress, shader_tween_duration, shader_tween_ease, shader_tween_trans)

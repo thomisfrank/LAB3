@@ -86,3 +86,22 @@ func _move_card_in_arc(card_node: Node2D, start: Vector2, target: Vector2) -> vo
 		var p2 = control_point.lerp(target, progress)
 		card_node.global_position = p1.lerp(p2, progress)
 	, 0.0, 1.0, move_duration)
+	
+	# After the arc completes, trigger the drop zone
+	t.tween_callback(func():
+		_trigger_drop_zone(card_node)
+	)
+
+
+func _trigger_drop_zone(card_node: Node2D) -> void:
+	"""Find the drop zone and trigger the card drop."""
+	# Find all drop zones in the scene
+	for zone in get_tree().get_nodes_in_group("drop_zones"):
+		if zone.has_method("on_card_dropped"):
+			# Call the drop zone's on_card_dropped method
+			# snap=false to keep the card where it landed, disintegrate=true to trigger the effect
+			zone.on_card_dropped(card_node, false, true)
+			return
+	
+	# If no drop zone found, log a warning
+	push_warning("AIManager: No drop zone found to trigger card drop")

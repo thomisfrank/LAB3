@@ -214,10 +214,6 @@ func flip_card():
 		visible_side.hide()
 		hidden_side.show()
 		hidden_side.scale.x = 0.0
-		
-		# If this is an opponent card flipping to face-up, rotate visuals to make it upside down
-		if not is_player_card and card_face.is_visible():
-			visuals.rotation = PI  # Rotate to upside down position for opponent
 	)
 	
 	# --- Part 3: Second Half of Flip (Card AND Shadow together) ---
