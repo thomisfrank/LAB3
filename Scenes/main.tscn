@@ -1,4 +1,4 @@
-[gd_scene load_steps=19 format=3 uid="uid://k78r5mnfr86l"]
+[gd_scene load_steps=20 format=3 uid="uid://k78r5mnfr86l"]
 
 [ext_resource type="Script" uid="uid://dt01fmi0ud6n0" path="res://Scripts/Core/main.gd" id="1_21xkr"]
 [ext_resource type="Script" uid="uid://diupc0dagbyfv" path="res://Scripts/Managers/card_manager.gd" id="1_bo1nx"]
@@ -11,6 +11,7 @@
 [ext_resource type="PackedScene" uid="uid://2gbx8t47wulx" path="res://Scenes/UI/backgrounds.tscn" id="5_1w6v2"]
 [ext_resource type="Script" uid="uid://bghl75ky5hfgf" path="res://Scripts/Managers/ai_manager.gd" id="5_h1bgf"]
 [ext_resource type="PackedScene" uid="uid://gdkre2xkksra" path="res://Scenes/Core/deck.tscn" id="6_6bp64"]
+[ext_resource type="Script" uid="uid://bayld4regrxic" path="res://Scripts/Managers/InfoScreenManager.gd" id="6_b3802"]
 [ext_resource type="PackedScene" uid="uid://djx8niab6ivv2" path="res://Scenes/Core/discard_pile.tscn" id="7_hptm8"]
 [ext_resource type="PackedScene" uid="uid://gu4ayccbc2mf" path="res://Scenes/Core/drop_zone.tscn" id="7_ynf5e"]
 [ext_resource type="PackedScene" uid="uid://l3ep0uhlvt53" path="res://Scenes/UI/game_state_overlay.tscn" id="9_d1ilt"]
@@ -76,6 +77,10 @@ move_offset = Vector2(350, 150)
 lift_duration = 1.0
 rotate_duration = 1.0
 move_duration = 1.0
+
+[node name="InfoScreenManager" type="Node" parent="Managers"]
+script = ExtResource("6_b3802")
+typing_speed = 0.02
 
 [node name="BackLayerUI" type="CanvasLayer" parent="."]
 layer = -10

@@ -17,7 +17,8 @@ config/icon="res://icon.svg"
 
 [autoload]
 
-GameManager="*res://Scripts/Managers/GameManager.gd"
+GameManager="*res://Scripts/GameManager.gd"
+CardDataLoader="*res://Scripts/Core/card_data_loader.gd"
 
 [display]
 

@@ -4,6 +4,7 @@
 	"value": "8",
 	"icon_path": "PeekDeck.png",
 	"description": "Look at the top 2 cards of the deck",
-	"color_a": [1.0, 0.9137255, 0.5686275, 1.0],
-	"color_b": [0.94509804, 0.76862746, 0.05882353, 1.0]
+	"color_a": [0.945, 0.769, 0.059, 1.0],
+	"color_b": [0.906, 0.298, 0.235, 1.0],
+	"color_c": [0.906, 0.616, 0.235, 1.0]
 }

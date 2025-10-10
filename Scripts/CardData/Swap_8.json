@@ -4,6 +4,7 @@
 	"value": "8",
 	"icon_path": "Swap.png",
 	"description": "Swap this card with one from your opponent's hand",
-	"color_a": [0.7411765, 0.5686275, 1.0, 1.0],
-	"color_b": [0.49411765, 0.05882353, 0.9411765, 1.0]
+	"color_a": [0.945, 0.769, 0.059, 1.0],
+	"color_b": [0.906, 0.298, 0.235, 1.0],
+	"color_c": [0.906, 0.616, 0.235, 1.0]
 }

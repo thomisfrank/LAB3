@@ -29,10 +29,20 @@ height = 700
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_0jwki"]
 shader = ExtResource("2_x1ee2")
-shader_parameter/speed = 0.5
-shader_parameter/color_a = Color(0.17254902, 0.24313726, 0.3137255, 1)
-shader_parameter/color_b = Color(0.3125337, 0.41808355, 0.5239429, 1)
-shader_parameter/scale = 2.5
+shader_parameter/color_light = Color(0.4862745, 0.6862745, 0.8901961, 1)
+shader_parameter/color_mid = Color(0.17254902, 0.24313726, 0.3137255, 1)
+shader_parameter/color_dark = Color(0.07450981, 0.12156863, 0.16862746, 1)
+shader_parameter/radius_light = 0.2790000132525
+shader_parameter/radius_mid = 0.5150000244625
+shader_parameter/radius_dark = 0.9070000430825
+shader_parameter/swirl_speed = 0.3
+shader_parameter/softness = 0.7
+shader_parameter/diffusion = 2.2
+shader_parameter/glow = 0.5
+shader_parameter/line_freq = 36.0
+shader_parameter/line_amp = 0.08
+shader_parameter/line_speed = 0.22
+shader_parameter/noise_scale = 2.4
 
 [sub_resource type="Gradient" id="Gradient_cdicx"]
 interpolation_mode = 2

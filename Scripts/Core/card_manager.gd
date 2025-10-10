@@ -10,6 +10,9 @@ var card_size: Vector2 = Vector2(500, 700)  # Set by RoundManager
 var card_spacing: float = 150.0  # Set by RoundManager
 var fan_angle_degrees: float = 15.0  # Set by RoundManager
 
+var deck: Array[String] = []
+var draw_index: int = 0
+
 # --- Draw animation tuning ---
 @export_group("Draw Animation")
 @export var draw_base_duration: float = 0.5
@@ -28,7 +31,20 @@ var fan_angle_degrees: float = 15.0  # Set by RoundManager
 var hand_tween: Tween = null
 
 func _ready():
-	pass
+	_initialize_deck()
+	print("[CardManager] _ready() called")
+
+func _initialize_deck():
+	deck.clear()
+	var suits = ["Draw", "PeekHand", "PeekDeck", "Swap"]
+	var values = ["2", "4", "6", "8", "10"]
+	for suit in suits:
+		for value in values:
+			deck.append(suit + "_" + value)
+	deck.shuffle()
+	draw_index = 0
+	print("[CardManager] Deck initialized with ", deck.size(), " cards")
+	print("[CardManager] First 5 cards: ", deck.slice(0, 5))
 
 func _ensure_card_scene() -> bool:
 	if not card_scene:
@@ -90,6 +106,14 @@ func draw_cards(number: int, start_pos: Vector2, _hand_center_pos: Vector2, face
 	for i in range(number):
 		var card_instance: Node2D = card_scene.instantiate()
 		add_child(card_instance)
+
+		if draw_index < deck.size() and card_instance.has_method("set_card_data"):
+			var card_name = deck[draw_index]
+			print("[CardManager] Drawing card: ", card_name, " to ", "player" if is_player else "opponent", " hand")
+			card_instance.set_card_data(card_name)
+			draw_index += 1
+		else:
+			print("[CardManager] WARNING: No card data available or method missing!")
 
 		# Ensure the card draws above the deck visual: bump z_index relative to deck if present
 		if deck_node and card_instance is CanvasItem:

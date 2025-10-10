@@ -3,7 +3,7 @@
 	"suit": "Back",
 	"value": "0",
 	"icon_path": "Logo.png",
-	"description": "Card back",
-	"color_a": [0.5, 0.5, 0.5, 1.0],
-	"color_b": [0.2, 0.2, 0.2, 1.0]
+	"color_a": [0.173, 0.243, 0.314, 1.0],
+	"color_b": [0.486, 0.812, 0.890, 1.0],
+	"color_c": [0.075, 0.122, 0.169, 1.0]
 }

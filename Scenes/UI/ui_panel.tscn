@@ -3,7 +3,6 @@
 [ext_resource type="Shader" uid="uid://c82r54bghps0l" path="res://Scripts/Shader/TextJitter.gdshader" id="1_8dexo"]
 [ext_resource type="Shader" uid="uid://jfk447x074xf" path="res://Scripts/Shader/panelBG.gdshader" id="1_whl73"]
 [ext_resource type="FontFile" uid="uid://m1ywn43ipi6s" path="res://Assets/fonts/Jacquard12-Regular.ttf" id="2_f8ty4"]
-[ext_resource type="FontFile" uid="uid://cd0mg1j1e8pyd" path="res://Assets/fonts/PixelifySans-VariableFont_wght.ttf" id="3_bdxum"]
 [ext_resource type="Shader" uid="uid://bj1asd5qhlhol" path="res://Scripts/Shader/smallDisplay.gdshader" id="4_f8ty4"]
 [ext_resource type="FontFile" uid="uid://cwx8a1d8i5udy" path="res://Assets/fonts/Seven Segment.ttf" id="5_olr4l"]
 [ext_resource type="Shader" uid="uid://b3xlk1vkq2k5b" path="res://Scripts/Shader/actionIcon.gdshader" id="6_40kas"]
@@ -12,6 +11,7 @@
 [ext_resource type="Texture2D" uid="uid://c2slcp3v2jn8k" path="res://Assets/UI/ButtonHover.png" id="9_n8jhx"]
 [ext_resource type="Shader" uid="uid://botwnnjgmqwq" path="res://Scripts/Shader/smallDisplay2.gdshader" id="10_3jtyh"]
 [ext_resource type="Texture2D" uid="uid://cb3vjmk6p2ucw" path="res://Assets/UI/PanelBox.png" id="11_iovtx"]
+[ext_resource type="FontFile" uid="uid://xsc61ygdt07q" path="res://Assets/fonts/OpenSansPXBold.ttf" id="13_jxrjt"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_jxrjt"]
 shader = ExtResource("1_8dexo")
@@ -47,7 +47,7 @@ font_color = Color(0.9254902, 0.9411765, 0.94509804, 1)
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_bbg02"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_xrano"]
-font = ExtResource("3_bdxum")
+font = ExtResource("13_jxrjt")
 font_size = 18
 font_color = Color(0.9254902, 0.9411765, 0.94509804, 1)
 
@@ -107,7 +107,7 @@ shader_parameter/border_thickness = 0.0970000046075
 shader_parameter/fill_alpha = 1.0
 
 [sub_resource type="LabelSettings" id="LabelSettings_5iwwa"]
-font = ExtResource("3_bdxum")
+font = ExtResource("13_jxrjt")
 font_size = 32
 font_color = Color(0.17254902, 0.24313726, 0.3137255, 1)
 
@@ -136,7 +136,7 @@ shader_parameter/gleam_speed = 0.03600000171
 shader_parameter/gleam_width = 0.3150000149625
 
 [sub_resource type="LabelSettings" id="LabelSettings_2lcw2"]
-font = ExtResource("3_bdxum")
+font = ExtResource("13_jxrjt")
 font_size = 28
 font_color = Color(0.94509804, 0.76862746, 0.05882353, 1)
 
@@ -377,14 +377,16 @@ texture_filter = 1
 material = SubResource("ShaderMaterial_jxrjt")
 layout_mode = 1
 anchors_preset = -1
-anchor_left = 0.29
-anchor_top = 0.09259259
-anchor_right = 0.665
-anchor_bottom = 0.8148148
+anchor_left = 0.285
+anchor_top = 0.1574074
+anchor_right = 0.66
+anchor_bottom = 0.8796296
 offset_top = -2.0
 offset_bottom = -2.0
 text = "Pass"
 label_settings = SubResource("LabelSettings_5iwwa")
+horizontal_alignment = 1
+vertical_alignment = 1
 metadata/_edit_use_anchors_ = true
 
 [node name="HSeparator" type="HSeparator" parent="PanelBG/VBoxContainer/TurnEconomy"]
@@ -554,6 +556,8 @@ offset_top = -2.0
 offset_bottom = -2.0
 text = "Pass"
 label_settings = SubResource("LabelSettings_5iwwa")
+horizontal_alignment = 1
+vertical_alignment = 1
 metadata/_edit_use_anchors_ = true
 
 [node name="VSeparator2" type="VSeparator" parent="PanelBG/VBoxContainer"]
@@ -572,10 +576,10 @@ texture = ExtResource("11_iovtx")
 texture_filter = 1
 material = SubResource("ShaderMaterial_jxrjt")
 layout_mode = 0
-offset_left = 11.0
-offset_top = 8.5
-offset_right = 440.0
-offset_bottom = 258.5
+offset_left = 50.0
+offset_top = 10.5
+offset_right = 404.0
+offset_bottom = 261.5
 text = "text goes here..."
 label_settings = SubResource("LabelSettings_2lcw2")
 horizontal_alignment = 1

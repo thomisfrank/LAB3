@@ -1,4 +1,4 @@
-[gd_scene load_steps=17 format=3 uid="uid://b2lihann318mb"]
+[gd_scene load_steps=18 format=3 uid="uid://b2lihann318mb"]
 
 [ext_resource type="Shader" uid="uid://jfk447x074xf" path="res://Scripts/Shader/panelBG.gdshader" id="1_abrp3"]
 [ext_resource type="Shader" uid="uid://c82r54bghps0l" path="res://Scripts/Shader/TextJitter.gdshader" id="2_3hhtl"]
@@ -6,7 +6,7 @@
 [ext_resource type="Texture2D" uid="uid://r4mhdhnpayc0" path="res://Assets/UI/Button.png" id="4_38n2p"]
 [ext_resource type="Texture2D" uid="uid://bn3yv5sw5wafi" path="res://Assets/UI/ButtonPressed.png" id="5_xe701"]
 [ext_resource type="Texture2D" uid="uid://c2slcp3v2jn8k" path="res://Assets/UI/ButtonHover.png" id="6_76fe7"]
-[ext_resource type="FontFile" uid="uid://cd0mg1j1e8pyd" path="res://Assets/fonts/PixelifySans-VariableFont_wght.ttf" id="7_16e25"]
+[ext_resource type="FontFile" uid="uid://xsc61ygdt07q" path="res://Assets/fonts/OpenSansPXBold.ttf" id="7_16e25"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_vrutc"]
 shader = ExtResource("1_abrp3")
@@ -50,6 +50,11 @@ shader_parameter/jitter_amount = 0.002000000095
 font = ExtResource("7_16e25")
 font_size = 32
 font_color = Color(0.17254902, 0.24313726, 0.3137255, 1)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_38n2p"]
+shader = ExtResource("2_3hhtl")
+shader_parameter/jitter_rate = 8.0
+shader_parameter/jitter_amount = 0.003
 
 [node name="EndRoundTray" type="Control"]
 layout_mode = 3
@@ -202,10 +207,13 @@ offset_top = -2.0
 offset_bottom = -2.0
 text = "Play again"
 label_settings = SubResource("LabelSettings_o4mxs")
+horizontal_alignment = 1
+vertical_alignment = 1
 metadata/_edit_use_anchors_ = true
 
 [node name="QuitButton" type="Button" parent="."]
 texture_filter = 1
+material = SubResource("ShaderMaterial_38n2p")
 layout_mode = 0
 offset_left = 1544.0
 offset_top = 838.0

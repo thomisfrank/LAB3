@@ -4,6 +4,7 @@
 	"value": "10",
 	"icon_path": "PeekHand.png",
 	"description": "Look at a card in your opponent's hand",
-	"color_a": [0.5686275, 0.8039216, 0.5019608, 1.0],
-	"color_b": [0.15294118, 0.68235296, 0.3764706, 1.0]
+	"color_a": [0.906, 0.298, 0.235, 1.0],
+	"color_b": [1.0, 0.569, 0.525, 1.0],
+	"color_c": [0.412, 0.039, 0.0, 1.0]
 }

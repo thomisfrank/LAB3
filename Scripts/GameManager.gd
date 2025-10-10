@@ -38,7 +38,6 @@ func _ready() -> void:
 	# 1. Initialize scores
 	total_scores[Player.PLAYER_ONE] = 0
 	total_scores[Player.PLAYER_TWO] = 0
-	# print("GameManager: _ready called (autoload). managers container:", get_parent())
 	
 	# 2. Find other managers in the scene 
 	# Try to resolve managers from the scene tree (if GameManager is placed in-scene)
@@ -52,7 +51,6 @@ func _ready() -> void:
 	# Also try to get CardManager from Parallax if not found in Managers
 	if not card_manager:
 		card_manager = get_node_or_null("/root/main/Parallax/CardManager")
-		# print("GameManager: CardManager found at /root/main/Parallax/CardManager")
 
 	# If this script is used as an autoload (singleton) then other managers
 	# should register themselves using register_manager(). We avoid hard

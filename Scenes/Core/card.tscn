@@ -1,5 +1,6 @@
-[gd_scene load_steps=28 format=3 uid="uid://jk3nxgheskjr"]
+[gd_scene load_steps=29 format=3 uid="uid://jk3nxgheskjr"]
 
+[ext_resource type="Script" uid="uid://o78q3htjpqfq" path="res://Scripts/Core/card.gd" id="1_card"]
 [ext_resource type="Shader" uid="uid://dl18pdf50a4mb" path="res://Scripts/Shader/CardBorder.gdshader" id="1_k8pqf"]
 [ext_resource type="Shader" uid="uid://dyirwv38vux2g" path="res://Scripts/Shader/CardGradient.gdshader" id="2_fyv6h"]
 [ext_resource type="Shader" uid="uid://c82r54bghps0l" path="res://Scripts/Shader/TextJitter.gdshader" id="3_1cqmn"]
@@ -32,10 +33,20 @@ height = 700
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_0jwki"]
 shader = ExtResource("2_fyv6h")
-shader_parameter/speed = 0.5
-shader_parameter/color_a = Color(0.15294118, 0.68235296, 0.3764706, 1)
-shader_parameter/color_b = Color(0.60523856, 0.9356135, 0.6617927, 1)
-shader_parameter/scale = 2.5
+shader_parameter/color_light = Color(0.506, 0.878, 0.576, 1)
+shader_parameter/color_mid = Color(0.153, 0.682, 0.376, 1)
+shader_parameter/color_dark = Color(0.063, 0.322, 0.173, 1)
+shader_parameter/radius_light = 0.4
+shader_parameter/radius_mid = 0.4
+shader_parameter/radius_dark = 0.7
+shader_parameter/swirl_speed = 0.5
+shader_parameter/softness = 0.7
+shader_parameter/diffusion = 2.2
+shader_parameter/glow = 0.5
+shader_parameter/line_freq = 24.0
+shader_parameter/line_amp = 1.5
+shader_parameter/line_speed = 1.0
+shader_parameter/noise_scale = 2.4
 
 [sub_resource type="Gradient" id="Gradient_cdicx"]
 interpolation_mode = 2
@@ -76,10 +87,20 @@ height = 700
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_1jrhc"]
 shader = ExtResource("2_fyv6h")
-shader_parameter/speed = 0.5
-shader_parameter/color_a = Color(0.17254902, 0.24313726, 0.3137255, 1)
-shader_parameter/color_b = Color(0.3125337, 0.41808355, 0.5239429, 1)
-shader_parameter/scale = 2.5
+shader_parameter/color_light = Color(0.4862745, 0.6862745, 0.8901961, 1)
+shader_parameter/color_mid = Color(0.17254902, 0.24313726, 0.3137255, 1)
+shader_parameter/color_dark = Color(0.07450981, 0.12156863, 0.16862746, 1)
+shader_parameter/radius_light = 0.2790000132525
+shader_parameter/radius_mid = 0.5150000244625
+shader_parameter/radius_dark = 0.9070000430825
+shader_parameter/swirl_speed = 0.5
+shader_parameter/softness = 0.7
+shader_parameter/diffusion = 2.2
+shader_parameter/glow = 0.5
+shader_parameter/line_freq = 32.0
+shader_parameter/line_amp = 2.0
+shader_parameter/line_speed = 1.0
+shader_parameter/noise_scale = 2.4
 
 [sub_resource type="Gradient" id="Gradient_8rdxi"]
 interpolation_mode = 2
@@ -102,6 +123,7 @@ theme_override_styles/pressed = SubResource("StyleBoxEmpty_fyv6h")
 theme_override_styles/hover = SubResource("StyleBoxEmpty_1cqmn")
 theme_override_styles/disabled = SubResource("StyleBoxEmpty_igamc")
 theme_override_styles/focus = SubResource("StyleBoxEmpty_vxxc8")
+script = ExtResource("1_card")
 metadata/_edit_vertical_guides_ = [61.0, 448.0]
 
 [node name="CardFace" type="Node2D" parent="."]
@@ -142,6 +164,7 @@ label_settings = SubResource("LabelSettings_nw351")
 horizontal_alignment = 2
 
 [node name="SuitLabel" type="Label" parent="CardFace"]
+material = SubResource("ShaderMaterial_igamc")
 offset_left = 61.0
 offset_top = 68.0
 offset_right = 317.0
@@ -150,6 +173,7 @@ text = "Peek Hand"
 label_settings = SubResource("LabelSettings_vxxc8")
 
 [node name="SuitLabel2" type="Label" parent="CardFace"]
+material = SubResource("ShaderMaterial_igamc")
 offset_left = 194.0
 offset_top = 593.0
 offset_right = 450.0
@@ -175,6 +199,7 @@ position = Vector2(253, 351)
 texture = ExtResource("4_fyv6h")
 
 [node name="Area2D" type="Area2D" parent="."]
+visible = false
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
 position = Vector2(253, 352)

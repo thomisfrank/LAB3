@@ -160,6 +160,10 @@ func _ready() -> void:
 				if not already_connected:
 					pass_button.connect("pressed", Callable(self, "_on_player_pass_pressed"))
 					# print("UIManager: Connected PassButton to _on_player_pass_pressed")
+				
+				# Connect hover signals for InfoScreen commentary
+				pass_button.connect("mouse_entered", Callable(self, "_on_pass_button_hover"))
+				pass_button.connect("mouse_exited", Callable(self, "_on_pass_button_exit"))
 			# store for external control
 			self.set("_player_pass_button", pass_button)
 			if pass_button:
@@ -201,6 +205,21 @@ func _on_player_pass_pressed() -> void:
 	else:
 		pass
 		# print("UIManager: TurnManager not found to handle pass")
+
+func _on_pass_button_hover() -> void:
+	var info_manager = get_node_or_null("/root/main/Managers/InfoScreenManager")
+	if info_manager and info_manager.has_method("show_pass_button_hover"):
+		# Get the current actions left value from the label
+		var actions_left = 0
+		if player_actions_left_label and player_actions_left_label.text != "":
+			actions_left = int(player_actions_left_label.text)
+		info_manager.show_pass_button_hover(actions_left)
+
+func _on_pass_button_exit() -> void:
+	var info_manager = get_node_or_null("/root/main/Managers/InfoScreenManager")
+	if info_manager and info_manager.has_method("clear"):
+		info_manager.clear()
+
 
 
 ## Simple static Loading overlay API (show/hide)

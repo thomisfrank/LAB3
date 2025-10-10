@@ -4,14 +4,14 @@ extends Node2D
 @onready var visuals = $Visuals
 @onready var shadow = $Visuals/Shadow
 @onready var display_container: SubViewportContainer = $Visuals/CardViewport
-@onready var card_viewport = $Visuals/CardViewport/SubViewport
-@onready var card = $Visuals/CardViewport/SubViewport/Card
+@onready var card_viewport = $Visuals/CardViewport/SubViewport/Card
 @onready var card_back = $Visuals/CardViewport/SubViewport/Card/CardBack
 @onready var card_face = $Visuals/CardViewport/SubViewport/Card/CardFace
 
 
 # --- Card Appearance ---
 @export var start_face_up: bool = true  # If true, starts showing card face; if false, shows back
+var card_name: String = ""  # Set by card_manager when instantiating
 
 # --- Card Ownership ---
 @export var is_player_card: bool = true  # If true, player can drag this card; if false, only hover effects
@@ -158,6 +158,18 @@ func apply_start_face_up() -> void:
 			card_face.hide()
 		if card_back:
 			card_back.show()
+
+func set_card_data(data_name: String) -> void:
+	card_name = data_name
+	
+	if not is_node_ready():
+		await ready
+	
+	if card_viewport and card_viewport.has_method("set_card_data"):
+		card_viewport.set_card_data(data_name)
+	else:
+		if card_viewport:
+			print("[InteractiveCard] card_viewport has set_card_data? ", card_viewport.has_method("set_card_data"))
 	
 	# Check if signals are connected
 	if display_container:
@@ -236,6 +248,13 @@ func flip_card():
 
 func _on_display_mouse_entered() -> void:
 	is_mouse_over = true
+	
+	# Show card info if face up
+	if card_face.visible and card_name != "":
+		var info_manager = get_node_or_null("/root/main/Managers/InfoScreenManager")
+		if info_manager:
+			info_manager.show_card_info(card_name)
+	
 	if not is_dragging:
 		# Kill any existing hover tween
 		if hover_tween and hover_tween.is_running():
@@ -262,6 +281,12 @@ func _on_display_mouse_entered() -> void:
 
 func _on_display_mouse_exited() -> void:
 	is_mouse_over = false
+	
+	# Clear info screen
+	var info_manager = get_node_or_null("/root/main/Managers/InfoScreenManager")
+	if info_manager:
+		info_manager.clear()
+	
 	if not is_dragging:
 		# Kill any existing hover tween
 		if hover_tween and hover_tween.is_running():
@@ -354,13 +379,6 @@ func set_home_position(pos: Vector2, rot: float) -> void:
 	"""Call this to set the card's designated home position in the hand"""
 	home_position = pos
 	home_rotation = rot
-	# print("[Card %d - %s - Instance:%s] set_home_position: Pos=%v, Rot=%.2f" % [
-	# 	card_index, 
-	# 	"Player" if is_player_card else "Opponent",
-	# 	get_instance_id(),
-	# 	pos, 
-	# 	rad_to_deg(rot)
-	# ])
 
 func snap_back_to_original_position() -> void:
 	# print("[Card %d] snap_back called: Current=%v, Home=%v" % [card_index, global_position, home_position])
