@@ -1,6 +1,7 @@
 extends Node
 
 signal start_sequence_finished
+signal turn_message_finished
 
 @export_group("Loading")
 @export var loading_opacity: float = 0.9
@@ -303,7 +304,10 @@ func show_turn_message(is_player_turn: bool) -> void:
 	tween.tween_property(label, "modulate:a", 1.0, 0.35).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	tween.tween_interval(0.9)
 	tween.tween_property(label, "modulate:a", 0.0, 0.25)
-	tween.tween_callback(func(): game_state_overlay.visible = false)
+	tween.tween_callback(func():
+		game_state_overlay.visible = false
+		emit_signal("turn_message_finished")
+	)
 
 
 func _set_label_text(label: Label, text: String) -> void:

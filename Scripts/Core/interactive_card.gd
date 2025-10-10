@@ -190,16 +190,8 @@ func _process(delta: float) -> void:
 		debug_frame_counter += 1
 		if debug_frame_counter >= debug_print_interval:
 			debug_frame_counter = 0
-			print("[Card %d] Pos: %v | Home: %v | Rot: %.2f | HomeRot: %.2f | Dragging: %s" % [
-				card_index,
-				global_position,
-				home_position,
-				rad_to_deg(rotation),
-				rad_to_deg(home_rotation),
-				str(is_dragging)
-			])
-	
-	# Debug: check mouse position
+			# print a single-line debug if needed:
+			# print("[Card %d] Pos:%s Home:%s Rot:%.2f HomeRot:%.2f Dragging:%s" % [card_index, global_position, home_position, rad_to_deg(rotation), rad_to_deg(home_rotation), str(is_dragging)])
 	if display_container and display_container.get_rect().has_point(display_container.get_local_mouse_position()):
 		if Input.is_action_just_pressed("click"):
 			pass
@@ -222,6 +214,10 @@ func flip_card():
 		visible_side.hide()
 		hidden_side.show()
 		hidden_side.scale.x = 0.0
+		
+		# If this is an opponent card flipping to face-up, rotate visuals to make it upside down
+		if not is_player_card and card_face.is_visible():
+			visuals.rotation = PI  # Rotate to upside down position for opponent
 	)
 	
 	# --- Part 3: Second Half of Flip (Card AND Shadow together) ---
@@ -235,6 +231,9 @@ func flip_card():
 	tween.tween_property(display_container, "scale", Vector2(flip_pop_scale, flip_pop_scale), flip_pop_duration * 0.5).set_ease(Tween.EASE_OUT)
 	# Scale back down
 	tween.tween_property(display_container, "scale", Vector2.ONE, flip_pop_duration * 0.5).set_ease(Tween.EASE_IN)
+
+	# Return the tween so callers can await its completion if needed
+	return tween
 
 
 # --- Signal Handlers ---
@@ -333,7 +332,8 @@ func _check_drop_zones() -> void:
 			if zone.contains_global_position(global_position):
 				# Trigger the drop
 				if zone.has_method("on_card_dropped"):
-					zone.on_card_dropped(self)
+					# We're already inside the zone, don't let it snap our position.
+					zone.on_card_dropped(self, false, true)
 				return
 	
 	# No valid drop zone found - snap back to original position with bounce
@@ -358,13 +358,13 @@ func set_home_position(pos: Vector2, rot: float) -> void:
 	"""Call this to set the card's designated home position in the hand"""
 	home_position = pos
 	home_rotation = rot
-	print("[Card %d - %s - Instance:%s] set_home_position: Pos=%v, Rot=%.2f" % [
-		card_index, 
-		"Player" if is_player_card else "Opponent",
-		get_instance_id(),
-		pos, 
-		rad_to_deg(rot)
-	])
+	# print("[Card %d - %s - Instance:%s] set_home_position: Pos=%v, Rot=%.2f" % [
+	# 	card_index, 
+	# 	"Player" if is_player_card else "Opponent",
+	# 	get_instance_id(),
+	# 	pos, 
+	# 	rad_to_deg(rot)
+	# ])
 
 func snap_back_to_original_position() -> void:
 	# print("[Card %d] snap_back called: Current=%v, Home=%v" % [card_index, global_position, home_position])

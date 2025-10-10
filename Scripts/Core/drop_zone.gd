@@ -87,10 +87,19 @@ func contains_global_position(pos: Vector2) -> bool:
 	return false
 
 # Called by cards when dropped in this zone
-func on_card_dropped(card_node: Node) -> void:
-	# --- Card Repositioning ---
-	# Move the card to the center of the drop zone
-	card_node.global_position = global_position
+func on_card_dropped(card_node: Node, snap: bool = true, _disintegrate: bool = true) -> void:
+	# Handle a card being dropped in this zone.
+	# snap: if true, reposition the card to the DropZone center; if false, leave it where it is.
+	# disintegrate: if true, immediately start the disintegration sequence; if false, skip it.
+	# --- Optional snap-to-center ---
+	if snap:
+		# Move the card to the center of the drop zone's CollisionShape2D for perfect alignment.
+		card_node.global_position = $CollisionShape2D.global_position
+	else:
+		# If not snapping, only accept the drop if the card is currently within our collision shape
+		if not contains_global_position(card_node.global_position):
+			# Card was not dropped inside this zone; ignore
+			return
 
 	# Check if the card is a player card or an opponent card
 	if card_node.is_player_card:
@@ -100,7 +109,7 @@ func on_card_dropped(card_node: Node) -> void:
 		# Opponent's card should be rotated 180 degrees
 		card_node.rotation = PI
 
-	if card_node.has_method("apply_disintegration"):
+	if _disintegrate and card_node.has_method("apply_disintegration"):
 		card_node.apply_disintegration(disintegration_shader, shader_start_progress, shader_target_progress, shader_tween_duration, shader_tween_ease, shader_tween_trans)
 	else:
 		pass

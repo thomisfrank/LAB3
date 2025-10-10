@@ -5,6 +5,7 @@ extends Node
 var game_manager: Node
 var ui_manager: Node
 var card_manager: Node
+var _deferred_ai_mgr: Node = null
 
 # --- Turn State ---
 var current_player: int = 0  # Use GameManager.Player enum semantics: 0 = PLAYER_ONE (you), 1 = PLAYER_TWO (opponent)
@@ -210,7 +211,34 @@ func next_turn() -> void:
 		opponent_actions_remaining = actions_per_turn
 
 	_update_action_ui()
-	
+	# If it's the opponent's turn, notify AIManager (if present)
+	if not is_player_turn:
+		# Show overlay and wait for it to finish before proceeding with AI action
+		var ai_mgr = null
+		if game_manager and game_manager.has_method("get_manager"):
+			ai_mgr = game_manager.get_manager("AIManager")
+		if not ai_mgr:
+			ai_mgr = get_node_or_null("/root/main/Managers/AIManager")
+		# If we have a UIManager overlay, show it and wait for completion before acting
+		if ui_manager and ui_manager.has_method("show_turn_message"):
+			ui_manager.show_turn_message(false)
+			# Wait for UIManager signal if available, otherwise fallback to the configured delay
+			if ui_manager.has_signal("turn_message_finished"):
+				# Connect a one-shot handler that continues the flow when the overlay finishes.
+				_deferred_ai_mgr = ai_mgr
+				# Use Callable-based connect for compatibility with project patterns
+				if not ui_manager.is_connected("turn_message_finished", Callable(self, "_on_turn_message_finished")):
+					ui_manager.connect("turn_message_finished", Callable(self, "_on_turn_message_finished"))
+			else:
+				# fallback: schedule delayed continuation after end_of_actions_delay
+				_deferred_ai_mgr = ai_mgr
+				_call_delayed_post_overlay(end_of_actions_delay)
+		# If no UI overlay, proceed immediately (but still call AI)
+		if not ui_manager or not ui_manager.has_signal("turn_message_finished"):
+			# If we scheduled a delayed continuation above, it will call AI; otherwise call now
+			if not _deferred_ai_mgr:
+				if ai_mgr and ai_mgr.has_method("on_ai_turn"):
+					ai_mgr.on_ai_turn()
 	# TODO: Add turn-based logic here (card play restrictions, etc.)
 
 ## Update UI opacity based on whose turn it is
@@ -352,6 +380,69 @@ func _set_action_icons_fill(panel: Node, remaining: int, _total: int) -> void:
 		elif "rotation" in c:
 			c.rotation = 0
 
+
+## Move a visible card to the center of the screen (used after overlays/turn messages)
+func _move_card_to_center() -> void:
+	# Try to locate a card to move. Prefer opponent cards, then any card in CardManager children.
+	var card_node: Node = null
+	if card_manager:
+		for c in card_manager.get_children():
+			if not c:
+				continue
+			if "is_player_card" in c:
+				if not c.is_player_card:
+					card_node = c
+					break
+			else:
+				# pick first child if no flag present
+				card_node = c
+				break
+
+	# Fallback scene search
+	if not card_node:
+		var scene_cards = get_tree().get_nodes_in_group("cards")
+		for c in scene_cards:
+			if not c:
+				continue
+			if "is_player_card" in c and not c.is_player_card:
+				card_node = c
+				break
+		if not card_node and scene_cards.size() > 0:
+			card_node = scene_cards[0]
+
+	if not card_node:
+		return
+
+	# Compute center of the visible viewport in global coordinates
+	var vp_rect = get_viewport().get_visible_rect()
+	var center = vp_rect.position + vp_rect.size * 0.5
+
+	# Tween the card's global_position to the center
+	if card_node and card_node is Node2D:
+		var t = create_tween()
+		t.tween_property(card_node, "global_position", center, 0.4).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+
+
+## Called when UIManager emits turn_message_finished
+func _on_turn_message_finished() -> void:
+	# Disconnect to keep it one-shot
+	if ui_manager and ui_manager.is_connected("turn_message_finished", Callable(self, "_on_turn_message_finished")):
+		ui_manager.disconnect("turn_message_finished", Callable(self, "_on_turn_message_finished"))
+	_call_delayed_post_overlay(0.3)
+
+
+func _call_delayed_post_overlay(delay: float) -> void:
+	# Wait 'delay' seconds, then move a card and notify AI (if deferred)
+	# Use a tween-based timer to avoid await/yield compatibility issues
+	var t = create_tween()
+	t.tween_interval(delay)
+	t.tween_callback(func():
+		_move_card_to_center()
+		if _deferred_ai_mgr and _deferred_ai_mgr.has_method("on_ai_turn"):
+			_deferred_ai_mgr.on_ai_turn()
+		_deferred_ai_mgr = null
+	)
+
 ## Public API: record that an action was played (e.g., a card dropped into the drop zone)
 func record_action_played(is_player_card: bool) -> void:
 	if is_player_card:
@@ -387,7 +478,7 @@ func pass_current_player() -> void:
 
 	_update_action_ui()
 	# When a player passes, schedule the next turn after a short delay
-	_schedule_turn_transition(2.0)
+	_schedule_turn_transition(end_of_actions_delay)
 
 ## Set opacity for opponent UI panel
 func _set_side_ui_opacity(side_name: String, opacity: float) -> void:

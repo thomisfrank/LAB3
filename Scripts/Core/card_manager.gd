@@ -25,7 +25,7 @@ var fan_angle_degrees: float = 15.0  # Set by RoundManager
 @export var flip_pre_pop_duration: float = 0.06
 @export var flip_time_jitter: float = 0.03
 
-var hand_tween: Tween
+var hand_tween: Tween = null
 
 func _ready():
 	pass
@@ -36,7 +36,7 @@ func _ensure_card_scene() -> bool:
 		return false
 	return true
 
-func draw_cards(number: int, start_pos: Vector2, hand_center_pos: Vector2, face_up: bool = true, is_player: bool = true) -> void:
+func draw_cards(number: int, start_pos: Vector2, _hand_center_pos: Vector2, face_up: bool = true, is_player: bool = true) -> void:
 	# Create cards and place them into hand slots (if present) or compute positions
 	emit_signal("draw_started")
 
@@ -51,7 +51,7 @@ func draw_cards(number: int, start_pos: Vector2, hand_center_pos: Vector2, face_
 	var hand_slots_path = "../HandSlots" if is_player else "../OpponentHandSlots"
 	var hand_slots_root = get_node_or_null(hand_slots_path)
 	
-	print("[CardManager] draw_cards - is_player=%s, hand_slots_path=%s, hand_slots_root=%s" % [is_player, hand_slots_path, hand_slots_root])
+	# print("[CardManager] draw_cards - is_player=%s, hand_slots_path=%s, hand_slots_root=%s" % [is_player, hand_slots_path, hand_slots_root])
 
 	# Ensure face-up/down state based on player
 	if is_player:
@@ -75,12 +75,13 @@ func draw_cards(number: int, start_pos: Vector2, hand_center_pos: Vector2, face_
 		push_error("[CardManager] ERROR: No valid hand slots found for %s hand!" % ("player" if is_player else "opponent"))
 		return
 	
-	print("[CardManager] Found %d slot positions for %s hand" % [slot_positions.size(), "player" if is_player else "opponent"])
+	# print("[CardManager] Found %d slot positions for %s hand" % [slot_positions.size(), "player" if is_player else "opponent"])
 
 	# Instantiate cards and move them to slot positions with tweens
+	# Ensure we don't leave an empty running Tween (which errors in Godot if started with no tweeners)
 	if hand_tween and hand_tween.is_running():
 		hand_tween.kill()
-	hand_tween = create_tween().set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+	hand_tween = null
 
 	# Cache Deck node for spawn position and z-index adjustments
 	var deck_node = get_node_or_null("/root/main/Parallax/Deck")
@@ -112,9 +113,10 @@ func draw_cards(number: int, start_pos: Vector2, hand_center_pos: Vector2, face_
 		if not is_player and card_instance.has_node("Visuals"):
 			var visuals = card_instance.get_node("Visuals")
 			visuals.rotation = PI  # 180 degrees in radians
-			print("[CardManager] Flipped opponent card %d visuals to PI (%.2f deg)" % [i, rad_to_deg(PI)])
+			# print("[CardManager] Flipped opponent card %d visuals to PI (%.2f deg)" % [i, rad_to_deg(PI)])
 		elif not is_player:
-			print("[CardManager] WARNING: Opponent card %d has no Visuals node!" % i)
+			# No Visuals node for opponent card - keep silent in debug-trimmed mode
+			pass
 
 		# scale relative to base
 		var base_card_size = Vector2(500, 700)

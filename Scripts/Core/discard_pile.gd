@@ -2,7 +2,9 @@ extends Node2D
 
 # Adjust these values in the Inspector to change how messy the pile is
 @export_group("Pile Randomization")
-@export_range(-45, 45, 0.1) var rotation_range_degrees: float = 15.0
+@export_range(-15, 15, 0.1) var rotation_range_degrees: float = 15.0
+# Controls how strongly the random rotation is biased toward the center (1 = uniform, >1 biases toward 0)
+@export_range(1.0, 5.0, 0.1) var rotation_bias_exponent: float = 2.0
 @export var position_offset_range_pixels: Vector2 = Vector2(10, 10)
 
 # Wiggle settings
@@ -61,11 +63,22 @@ func add_card(card: Node) -> void:
 		var display_container = card.get_node("Visuals/CardViewport")
 		display_container.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
-	# Randomize Rotation - ADD to existing rotation instead of replacing it
-	var random_rotation_radians = deg_to_rad(randf_range(-rotation_range_degrees, rotation_range_degrees))
-	card.rotation = random_rotation_radians  # Reset to face-up with small random rotation
-
-	# Randomize Position Offset
+	# Place the card at the discard pile's global position, then randomize local offset and rotation
+	card.global_position = self.global_position
+	var configured_range = rotation_range_degrees
+	# Guard: if someone set an absurd value in the inspector, clamp it to +/-15 degrees
+	var safe_range = clamp(abs(configured_range), 0.0, 15.0)
+	# Bias the random selection toward 0 so full-range rotations are rarer.
+	# We sample r in [-1,1], then apply sign(r) * |r|^rotation_bias_exponent, where exponent>1 biases toward 0.
+	var r = randf_range(-1.0, 1.0)
+	var biased = sign(r) * pow(abs(r), rotation_bias_exponent)
+	var random_deg = biased * safe_range
+	var random_rotation_radians = deg_to_rad(random_deg)
+	# Debug log to help diagnose unexpected rotations
+	# print("DiscardPile: configured_range=", configured_range, "safe_range=", safe_range, "applied_deg=", random_deg, "card_before_rot(deg)=", rad_to_deg(card.rotation))
+	card.rotation = random_rotation_radians  # small random rotation
+	# print("DiscardPile: card_after_rot(deg)=", rad_to_deg(card.rotation))
+	# Randomize local Position Offset around pile center
 	var random_offset_x = randf_range(-position_offset_range_pixels.x, position_offset_range_pixels.x)
 	var random_offset_y = randf_range(-position_offset_range_pixels.y, position_offset_range_pixels.y)
 	card.position = Vector2(random_offset_x, random_offset_y)

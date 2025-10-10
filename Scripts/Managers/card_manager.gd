@@ -25,7 +25,7 @@ var fan_angle_degrees: float = 15.0  # Set by RoundManager
 @export var flip_pre_pop_duration: float = 0.06
 @export var flip_time_jitter: float = 0.03
 
-var hand_tween: Tween
+var hand_tween: Tween = null
 
 func _ready():
 	pass
@@ -49,7 +49,7 @@ func draw_cards(number: int, start_pos: Vector2, _hand_center_pos: Vector2, face
 	var hand_slots_path = "../HandSlots" if is_player else "../OpponentHandSlots"
 	var hand_slots_root = get_node_or_null(hand_slots_path)
 	
-	print("[CardManager] draw_cards - is_player=%s, hand_slots_path=%s, found=%s" % [is_player, hand_slots_path, hand_slots_root != null])
+	# print("[CardManager] draw_cards - is_player=%s, hand_slots_path=%s, found=%s" % [is_player, hand_slots_path, hand_slots_root != null])
 
 	# Player cards flip face-up, opponent cards stay face-down
 	face_up = false if is_player else false
@@ -62,19 +62,20 @@ func draw_cards(number: int, start_pos: Vector2, _hand_center_pos: Vector2, face
 	
 	for slot in hand_slots_root.get_children():
 		if is_instance_valid(slot):
-			print("[CardManager] Found slot: %s at pos %v" % [slot.name, slot.global_position])
+			# print("[CardManager] Found slot: %s at pos %v" % [slot.name, slot.global_position])
 			slot_positions.append(slot)
 	
 	if slot_positions.size() == 0:
 		push_error("[CardManager] ERROR: No valid hand slots found for %s!" % ("player" if is_player else "opponent"))
 		return
 	
-	print("[CardManager] Drawing %d cards for %s into %d slots" % [number, "player" if is_player else "opponent", slot_positions.size()])
+	# print("[CardManager] Drawing %d cards for %s into %d slots" % [number, "player" if is_player else "opponent", slot_positions.size()])
 
 	# Instantiate cards and move them to slot positions with tweens
+	# Ensure we don't leave an empty running Tween (which errors in Godot if started with no tweeners)
 	if hand_tween and hand_tween.is_running():
 		hand_tween.kill()
-	hand_tween = create_tween().set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+	hand_tween = null
 
 	# Cache Deck node for spawn position and z-index adjustments
 	var deck_node = get_node_or_null("/root/main/Parallax/Deck")
@@ -149,7 +150,7 @@ func draw_cards(number: int, start_pos: Vector2, _hand_center_pos: Vector2, face
 		await t.finished
 
 		# Card is now at slot position
-		print("[CardManager] Card %d positioned - pos: %v, rot: %.2f deg" % [i, card_instance.global_position, rad_to_deg(card_instance.rotation)])
+	# print("[CardManager] Card %d positioned - pos: %v, rot: %.2f deg" % [i, card_instance.global_position, rad_to_deg(card_instance.rotation)])
 
 		# Arrival pop animation
 		var pop_t = create_tween()
@@ -201,7 +202,7 @@ func _get_hand_slot_positions(is_player: bool = true) -> Array:
 func relayout_hand(is_player: bool = true) -> void:
 	"""Reposition existing cards to fill gaps using HandSlots."""
 	
-	print("[CardManager] relayout_hand called for %s hand" % ("player" if is_player else "opponent"))
+	# print("[CardManager] relayout_hand called for %s hand" % ("player" if is_player else "opponent"))
 
 	# Collect cards for the specified hand
 	var cards: Array = []
@@ -215,7 +216,7 @@ func relayout_hand(is_player: bool = true) -> void:
 					continue
 			cards.append(child)
 	
-	print("[CardManager] Found %d cards to relayout for %s" % [cards.size(), "player" if is_player else "opponent"])
+	# print("[CardManager] Found %d cards to relayout for %s" % [cards.size(), "player" if is_player else "opponent"])
 
 	# Sort by card_index if available to preserve intended order
 	cards.sort_custom(Callable(self, "_sort_by_card_index"))
