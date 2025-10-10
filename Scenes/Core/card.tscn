@@ -1,9 +1,10 @@
-[gd_scene load_steps=27 format=3 uid="uid://jk3nxgheskjr"]
+[gd_scene load_steps=28 format=3 uid="uid://jk3nxgheskjr"]
 
 [ext_resource type="Shader" uid="uid://dl18pdf50a4mb" path="res://Scripts/Shader/CardBorder.gdshader" id="1_k8pqf"]
 [ext_resource type="Shader" uid="uid://dyirwv38vux2g" path="res://Scripts/Shader/CardGradient.gdshader" id="2_fyv6h"]
 [ext_resource type="Shader" uid="uid://c82r54bghps0l" path="res://Scripts/Shader/TextJitter.gdshader" id="3_1cqmn"]
 [ext_resource type="FontFile" uid="uid://m1ywn43ipi6s" path="res://Assets/fonts/Jacquard12-Regular.ttf" id="3_fyv6h"]
+[ext_resource type="Texture2D" uid="uid://bvddrq4tfga74" path="res://Assets/CardFramework/PeekHand.png" id="3_igamc"]
 [ext_resource type="Texture2D" uid="uid://c5hggaaw5c51v" path="res://Assets/CardFramework/Logo.png" id="4_fyv6h"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_k8pqf"]
@@ -45,9 +46,6 @@ width = 460
 height = 660
 fill = 1
 
-[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_4ekg0"]
-size = Vector2(150, 150)
-
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_igamc"]
 shader = ExtResource("3_1cqmn")
 shader_parameter/jitter_rate = 4.50000016625
@@ -56,6 +54,11 @@ shader_parameter/jitter_amount = 0.002000000095
 [sub_resource type="LabelSettings" id="LabelSettings_nw351"]
 font = ExtResource("3_fyv6h")
 font_size = 125
+font_color = Color(0.17254902, 0.24313726, 0.3137255, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_vxxc8"]
+font = ExtResource("3_fyv6h")
+font_size = 64
 font_color = Color(0.17254902, 0.24313726, 0.3137255, 1)
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_1cqmn"]
@@ -99,6 +102,7 @@ theme_override_styles/pressed = SubResource("StyleBoxEmpty_fyv6h")
 theme_override_styles/hover = SubResource("StyleBoxEmpty_1cqmn")
 theme_override_styles/disabled = SubResource("StyleBoxEmpty_igamc")
 theme_override_styles/focus = SubResource("StyleBoxEmpty_vxxc8")
+metadata/_edit_vertical_guides_ = [61.0, 448.0]
 
 [node name="CardFace" type="Node2D" parent="."]
 
@@ -113,9 +117,8 @@ position = Vector2(253, 351)
 texture = SubResource("GradientTexture2D_ridwv")
 
 [node name="Icon" type="Sprite2D" parent="CardFace"]
-modulate = Color(0.17254902, 0.24313726, 0.3137255, 1)
 position = Vector2(253, 351)
-texture = SubResource("PlaceholderTexture2D_4ekg0")
+texture = ExtResource("3_igamc")
 
 [node name="ValueLabel" type="Label" parent="CardFace"]
 material = SubResource("ShaderMaterial_igamc")
@@ -137,6 +140,22 @@ offset_bottom = 680.0
 text = "2"
 label_settings = SubResource("LabelSettings_nw351")
 horizontal_alignment = 2
+
+[node name="SuitLabel" type="Label" parent="CardFace"]
+offset_left = 61.0
+offset_top = 68.0
+offset_right = 317.0
+offset_bottom = 133.0
+text = "Peek Hand"
+label_settings = SubResource("LabelSettings_vxxc8")
+
+[node name="SuitLabel2" type="Label" parent="CardFace"]
+offset_left = 194.0
+offset_top = 593.0
+offset_right = 450.0
+offset_bottom = 658.0
+text = "Peek Hand"
+label_settings = SubResource("LabelSettings_vxxc8")
 
 [node name="CardBack" type="Node2D" parent="."]
 visible = false

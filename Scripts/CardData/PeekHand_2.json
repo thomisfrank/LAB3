@@ -1,0 +1,9 @@
+{
+	"name": "PeekHand_2",
+	"suit": "PeekHand",
+	"value": "2",
+	"icon_path": "PeekHand.png",
+	"description": "Look at a card in your opponent's hand",
+	"color_a": [0.5686275, 0.8039216, 0.5019608, 1.0],
+	"color_b": [0.15294118, 0.68235296, 0.3764706, 1.0]
+}

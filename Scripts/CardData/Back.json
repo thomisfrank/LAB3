@@ -1,0 +1,9 @@
+{
+	"name": "Back",
+	"suit": "Back",
+	"value": "0",
+	"icon_path": "Logo.png",
+	"description": "Card back",
+	"color_a": [0.5, 0.5, 0.5, 1.0],
+	"color_b": [0.2, 0.2, 0.2, 1.0]
+}

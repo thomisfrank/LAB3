@@ -1,0 +1,9 @@
+{
+	"name": "Draw_4",
+	"suit": "Draw",
+	"value": "4",
+	"icon_path": "Draw.png",
+	"description": "Draw 1 card",
+	"color_a": [1.0, 0.5686275, 0.5686275, 1.0],
+	"color_b": [0.9411765, 0.05882353, 0.05882353, 1.0]
+}
