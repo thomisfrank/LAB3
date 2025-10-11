@@ -49,7 +49,7 @@ func _on_draw_button_pressed():
 func add_to_discard_pile(card):
 	if not is_instance_valid(discard_pile_node):
 		pass
-		# print("Error: Discard pile node is not valid. Make sure it's set in the Inspector!")
+		# Discard pile node invalid (suppressed log)
 		return
 	
 	# Delegate to the discard pile's add_card method

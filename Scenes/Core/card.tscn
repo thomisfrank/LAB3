@@ -43,8 +43,8 @@ shader_parameter/swirl_speed = 0.5
 shader_parameter/softness = 0.7
 shader_parameter/diffusion = 2.2
 shader_parameter/glow = 0.5
-shader_parameter/line_freq = 24.0
-shader_parameter/line_amp = 1.5
+shader_parameter/line_freq = 50.0
+shader_parameter/line_amp = 3.0
 shader_parameter/line_speed = 1.0
 shader_parameter/noise_scale = 2.4
 
@@ -97,9 +97,9 @@ shader_parameter/swirl_speed = 0.5
 shader_parameter/softness = 0.7
 shader_parameter/diffusion = 2.2
 shader_parameter/glow = 0.5
-shader_parameter/line_freq = 32.0
-shader_parameter/line_amp = 2.0
-shader_parameter/line_speed = 1.0
+shader_parameter/line_freq = 19.0
+shader_parameter/line_amp = 1.5
+shader_parameter/line_speed = 0.0
 shader_parameter/noise_scale = 2.4
 
 [sub_resource type="Gradient" id="Gradient_8rdxi"]

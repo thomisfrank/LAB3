@@ -103,11 +103,14 @@ func on_card_dropped(card_node: Node, snap: bool = true, _disintegrate: bool = t
 
 	# Don't change rotation - let cards keep their current orientation (upside-down for opponent, upright for player)
 
+	# Reset z-index to ensure proper layering in the discard pile
+	card_node.z_index = 0
+
 	if _disintegrate and card_node.has_method("apply_disintegration"):
 		card_node.apply_disintegration(disintegration_shader, shader_start_progress, shader_target_progress, shader_tween_duration, shader_tween_ease, shader_tween_trans)
 	else:
 		pass
-		# print("DropZone: card doesn't have apply_disintegration method")
+		# card has no apply_disintegration (suppressed log)
 
 	# Notify TurnManager that an action was played (for now, any card dropped counts)
 	var gm = get_node_or_null("/root/GameManager")

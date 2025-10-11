@@ -34,12 +34,12 @@ func add_card(card: Node) -> void:
 	"""Add a card to the discard pile with polish effects."""
 	if not is_instance_valid(card):
 		pass
-		# print("DiscardPile: Card is not valid.")
+		# card invalid (suppressed log)
 		return
 	
 	if not card.is_inside_tree():
 		pass
-		# print("DiscardPile: Card is not in the scene tree.")
+		# card not in tree (suppressed log)
 		return
 
 	# Remove the card from its current parent
@@ -62,6 +62,20 @@ func add_card(card: Node) -> void:
 	if card.has_node("Visuals/CardViewport"):
 		var display_container = card.get_node("Visuals/CardViewport")
 		display_container.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	# Ensure the card face is visible in the discard pile (opponent cards should reveal)
+	# Prefer public methods if available, otherwise directly toggle nodes
+	if card.has_method("apply_start_face_up"):
+		card.start_face_up = true
+		card.apply_start_face_up()
+	else:
+		# Direct node toggle fallback
+		if card.has_node("Visuals/CardViewport/SubViewport/Card/CardFace") and card.has_node("Visuals/CardViewport/SubViewport/Card/CardBack"):
+			var face_node = card.get_node("Visuals/CardViewport/SubViewport/Card/CardFace")
+			var back_node = card.get_node("Visuals/CardViewport/SubViewport/Card/CardBack")
+			if face_node and back_node:
+				face_node.show()
+				back_node.hide()
 
 	# Reset the visuals rotation to 0 (in case opponent cards have rotated visuals)
 	if card.has_node("Visuals"):

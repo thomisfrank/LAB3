@@ -1,4 +1,4 @@
-[gd_scene load_steps=36 format=3 uid="uid://bd7r3kr8kyerm"]
+[gd_scene load_steps=41 format=3 uid="uid://bd7r3kr8kyerm"]
 
 [ext_resource type="Shader" uid="uid://c82r54bghps0l" path="res://Scripts/Shader/TextJitter.gdshader" id="1_8dexo"]
 [ext_resource type="Shader" uid="uid://jfk447x074xf" path="res://Scripts/Shader/panelBG.gdshader" id="1_whl73"]
@@ -48,7 +48,7 @@ font_color = Color(0.9254902, 0.9411765, 0.94509804, 1)
 
 [sub_resource type="LabelSettings" id="LabelSettings_xrano"]
 font = ExtResource("13_jxrjt")
-font_size = 18
+font_size = 24
 font_color = Color(0.9254902, 0.9411765, 0.94509804, 1)
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_bdxum"]
@@ -62,6 +62,11 @@ shader_parameter/line_position2 = 0.67
 shader_parameter/gleam_color = Color(1, 1, 1, 0.1)
 shader_parameter/gleam_speed = 0.15
 shader_parameter/gleam_width = 0.290000013775
+shader_parameter/curvature_amount = 0.3070000145825
+shader_parameter/vignette_intensity = 0.55200002622
+shader_parameter/vignette_softness = 1.4010000632876198
+shader_parameter/dirt_intensity = 0.08400000399
+shader_parameter/dirt_scale = 56.8270026517825
 
 [sub_resource type="LabelSettings" id="LabelSettings_qaq6h"]
 font = ExtResource("5_olr4l")
@@ -79,6 +84,11 @@ shader_parameter/line_position2 = 0.0
 shader_parameter/gleam_color = Color(1, 1, 1, 0.1)
 shader_parameter/gleam_speed = 0.1510000071725
 shader_parameter/gleam_width = 0.394000018715
+shader_parameter/curvature_amount = 0.1
+shader_parameter/vignette_intensity = 0.5
+shader_parameter/vignette_softness = 0.8
+shader_parameter/dirt_intensity = 0.05
+shader_parameter/dirt_scale = 50.0
 
 [sub_resource type="LabelSettings" id="LabelSettings_bbg02"]
 font = ExtResource("5_olr4l")
@@ -132,8 +142,17 @@ shader_parameter/fill_alpha = 1.0
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_5bnn7"]
 shader = ExtResource("10_3jtyh")
 shader_parameter/gleam_color = Color(0.9254902, 0.9411765, 0.94509804, 0.047058824)
-shader_parameter/gleam_speed = 0.03600000171
-shader_parameter/gleam_width = 0.3150000149625
+shader_parameter/gleam_speed = 0.1570000074575
+shader_parameter/gleam_width = 0.30400001444
+shader_parameter/curvature_amount = 0.070000003325
+shader_parameter/vignette_intensity = 0.5070000240825
+shader_parameter/vignette_softness = 1.04000004614012
+shader_parameter/dirt_intensity = 0.0330000015675
+shader_parameter/dirt_scale = 59.1030027598925
+shader_parameter/white_protection_threshold = 0.80000001192093
+shader_parameter/static_color = Color(0.9254902, 0.9411765, 0.94509804, 1)
+shader_parameter/static_intensity = 0.10000000149012
+shader_parameter/static_scale = 1.25200001197
 
 [sub_resource type="LabelSettings" id="LabelSettings_2lcw2"]
 font = ExtResource("13_jxrjt")
@@ -144,6 +163,16 @@ font_color = Color(0.94509804, 0.76862746, 0.05882353, 1)
 shader = ExtResource("1_8dexo")
 shader_parameter/jitter_rate = 8.0
 shader_parameter/jitter_amount = 0.003
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_8dexo"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_jxrjt"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_felqg"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_7bfds"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_kry7q"]
 
 [node name="UIPanel" type="Control"]
 material = SubResource("ShaderMaterial_jxrjt")
@@ -591,7 +620,7 @@ custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 theme_override_styles/separator = SubResource("StyleBoxEmpty_bbg02")
 
-[node name="Button" type="Button" parent="PanelBG/VBoxContainer"]
+[node name="OptionsButton" type="Button" parent="PanelBG/VBoxContainer"]
 texture_filter = 1
 material = SubResource("ShaderMaterial_8dexo")
 layout_mode = 2
@@ -600,5 +629,10 @@ theme_override_colors/font_hover_color = Color(0.15294118, 0.68235296, 0.3764706
 theme_override_colors/font_hover_pressed_color = Color(0.94509804, 0.76862746, 0.05882353, 1)
 theme_override_fonts/font = ExtResource("2_f8ty4")
 theme_override_font_sizes/font_size = 32
+theme_override_styles/normal = SubResource("StyleBoxEmpty_8dexo")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_jxrjt")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_felqg")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_7bfds")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_kry7q")
 text = "◆    options    ◆"
 flat = true

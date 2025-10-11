@@ -10,8 +10,10 @@ var card_size: Vector2 = Vector2(500, 700)  # Set by RoundManager
 var card_spacing: float = 150.0  # Set by RoundManager
 var fan_angle_degrees: float = 15.0  # Set by RoundManager
 
-var deck: Array[String] = []
+var deck: Array = []
 var draw_index: int = 0
+var last_deck_remaining: int = -1
+var deck_counter_tween = null
 
 # --- Draw animation tuning ---
 @export_group("Draw Animation")
@@ -30,18 +32,38 @@ var draw_index: int = 0
 
 var hand_tween: Tween = null
 
+# Deck counter flicker tuning (editable in Inspector)
+@export_group("Deck Counter - Flicker")
+@export var flicker_steps: int = 8
+@export var flicker_step_time: float = 0.04
+@export var flicker_stagger: float = 0.06
+@export var flicker_blank_chance: float = 0.2
+@export var flicker_final_pause: float = 0.04
+
 func _ready():
 	_initialize_deck()
 
 func _initialize_deck():
-	deck.clear()
-	var suits = ["Draw", "PeekHand", "PeekDeck", "Swap"]
-	var values = ["2", "4", "6", "8", "10"]
-	for suit in suits:
-		for value in values:
-			deck.append(suit + "_" + value)
-	deck.shuffle()
+	# Try the common autoload path first, then fall back to a global search in the scene tree.
+	var card_data_loader = get_node_or_null("/root/CardDataLoader")
+	if not card_data_loader:
+		card_data_loader = get_tree().get_root().find_node("CardDataLoader", true, false)
+	
+	if card_data_loader:
+		deck = card_data_loader.get_deck_composition()
+		# Deck composition loaded from CardDataLoader
+		if typeof(deck) != TYPE_ARRAY or deck.size() == 0:
+			push_warning("[CardManager] Deck composition is empty after loading from CardDataLoader!")
+		else:
+			# Debug/info log: deck loaded successfully
+			print("[CardManager] Deck composition loaded: %d cards" % deck.size())
+			deck.shuffle()
+	else:
+		push_error("[CardManager] CardDataLoader node not found - deck will be empty")
+
 	draw_index = 0
+	# Update on-screen deck counter if present
+	_update_deck_counter()
 
 func _ensure_card_scene() -> bool:
 	if not card_scene:
@@ -67,7 +89,7 @@ func draw_cards(number: int, start_pos: Vector2, _hand_center_pos: Vector2, face
 	var hand_slots_path = "../HandSlots" if is_player else "../OpponentHandSlots"
 	var hand_slots_root = get_node_or_null(hand_slots_path)
 	
-	# print("[CardManager] draw_cards - is_player=%s, hand_slots_path=%s, found=%s" % [is_player, hand_slots_path, hand_slots_root != null])
+	# draw_cards called
 
 	# Player cards flip face-up, opponent cards stay face-down
 	face_up = false if is_player else false
@@ -80,14 +102,14 @@ func draw_cards(number: int, start_pos: Vector2, _hand_center_pos: Vector2, face
 	
 	for slot in hand_slots_root.get_children():
 		if is_instance_valid(slot):
-			# print("[CardManager] Found slot: %s at pos %v" % [slot.name, slot.global_position])
+			# found slot
 			slot_positions.append(slot)
 	
 	if slot_positions.size() == 0:
 		push_error("[CardManager] ERROR: No valid hand slots found for %s!" % ("player" if is_player else "opponent"))
 		return
 	
-	# print("[CardManager] Drawing %d cards for %s into %d slots" % [number, "player" if is_player else "opponent", slot_positions.size()])
+	# drawing cards into slots
 
 	# Instantiate cards and move them to slot positions with tweens
 	# Ensure we don't leave an empty running Tween (which errors in Godot if started with no tweeners)
@@ -108,8 +130,10 @@ func draw_cards(number: int, start_pos: Vector2, _hand_center_pos: Vector2, face
 			var card_name = deck[draw_index]
 			card_instance.set_card_data(card_name)
 			draw_index += 1
+			_update_deck_counter()
 		else:
-			print("[CardManager] WARNING: No card data available or method missing!")
+			# Silent warning: missing card data or method; use push_warning so it's visible in the editor output
+			push_warning("[CardManager] WARNING: No card data available or method missing!")
 		
 		# Get the target slot for this card
 		var target_slot = slot_positions[i] if i < slot_positions.size() else slot_positions[slot_positions.size() - 1]
@@ -175,7 +199,7 @@ func draw_cards(number: int, start_pos: Vector2, _hand_center_pos: Vector2, face
 		await t.finished
 
 		# Card is now at slot position
-	# print("[CardManager] Card %d positioned - pos: %v, rot: %.2f deg" % [i, card_instance.global_position, rad_to_deg(card_instance.rotation)])
+	# card positioned
 
 		# Arrival pop animation
 		var pop_t = create_tween()
@@ -224,10 +248,223 @@ func _get_hand_slot_positions(is_player: bool = true) -> Array:
 	return slots
 
 
+func _update_deck_counter() -> void:
+	# Update the DeckCounter UI in the Deck scene (if present)
+	var deck_node = get_node_or_null("/root/main/Parallax/Deck")
+	if not deck_node:
+		return
+	var counter = deck_node.get_node_or_null("DeckCounter")
+	if not counter:
+		return
+	var remaining = 0
+	if deck and typeof(deck) == TYPE_ARRAY:
+		remaining = max(0, deck.size() - draw_index)
+	# Format as two digits for the two labels
+	var tens = int((remaining / 10) % 10)
+	var ones = int(remaining % 10)
+	# Update labels if they exist
+	var no_label = counter.get_node_or_null("HBoxContainer/NoValueLabel")
+	var d1_label = counter.get_node_or_null("HBoxContainer/DeckDigit1Label")
+	var d2_label = counter.get_node_or_null("HBoxContainer/DeckDigit2Label")
+	# The NoValueLabel should always display 0 (design decision)
+	if no_label and no_label is Label:
+		no_label.text = "0"
+	if d1_label and d1_label is Label:
+		d1_label.text = str(tens)
+	if d2_label and d2_label is Label:
+		d2_label.text = str(ones)
+
+	# If the remaining count changed, play a dying-gauge flicker on the digit labels
+	if last_deck_remaining != remaining:
+		last_deck_remaining = remaining
+		# Pick the two digit labels and flicker them like an old electronic gauge
+		if d1_label and d1_label is Label:
+			# stagger the two digits slightly for a more vintage feel
+			_flicker_gauge_label(d1_label, int(tens), 0.0)
+		if d2_label and d2_label is Label:
+			_flicker_gauge_label(d2_label, int(ones), flicker_stagger)
+
+
+func _flicker_gauge_label(lbl: Label, final_digit: int, delay: float = 0.0) -> void:
+	# Emulate an old 7-seg dying gauge: rapid jitter through digits, occasional blanks, then settle.
+	# Non-blocking: use a tween and timers to schedule updates.
+	if not lbl or not lbl.is_inside_tree():
+		return
+	# Cancel any ongoing tweens on the label
+	var t = create_tween()
+	# Start after delay
+	if delay > 0.0:
+		t.tween_interval(delay)
+
+	# Sequence of jitter updates: alternate between random digits and blanks
+	for i in range(flicker_steps):
+		var dt = flicker_step_time
+		var show_blank = randf() < flicker_blank_chance
+		var rnd_digit = str(randi() % 10)
+		if show_blank:
+			t.tween_callback(func():
+				if is_instance_valid(lbl):
+					lbl.text = " "
+			)
+		else:
+			t.tween_callback(func():
+				if is_instance_valid(lbl):
+					lbl.text = rnd_digit
+			)
+		t.tween_interval(dt)
+
+	# Final settle to the actual digit (short pause then set)
+	t.tween_interval(flicker_final_pause)
+	t.tween_callback(func():
+		if is_instance_valid(lbl):
+			lbl.text = str(final_digit)
+	)
+
+
+func get_hand_cards(is_player: bool = true) -> Array:
+	var cards: Array = []
+	for child in get_children():
+		if child and "is_player_card" in child and child.is_player_card == is_player:
+			cards.append(child)
+	return cards
+
+
+func is_deck_depleted() -> bool:
+	"""Return true when there are no more cards left to draw from the deck."""
+	if typeof(deck) != TYPE_ARRAY:
+		return true
+	return draw_index >= deck.size()
+
+
+func discard_all_hands() -> void:
+	"""
+	Animate all cards from both hands into the discard pile, and return when
+	all move/disintegration animations have completed and the cards have been
+	handed off to the discard pile.
+
+	This function is awaitable by callers because it uses `await` internally.
+	"""
+	var player_cards = get_hand_cards(true)
+	var opponent_cards = get_hand_cards(false)
+	var all_cards = []
+	for c in player_cards:
+		all_cards.append(c)
+	for c in opponent_cards:
+		all_cards.append(c)
+
+	if all_cards.size() == 0:
+		return
+
+	var main_node = get_node_or_null("/root/main")
+	var discard_node = null
+	if main_node and "discard_pile_node" in main_node:
+		discard_node = main_node.discard_pile_node
+	if not discard_node:
+		discard_node = get_tree().get_root().find_node("DiscardPile", true, false)
+
+	# Target position fallback (center of discard node or the scene center)
+	var target_global_pos = Vector2.ZERO
+	if discard_node and discard_node is Node2D:
+		target_global_pos = discard_node.global_position
+	else:
+		var vp = get_viewport().get_visible_rect()
+		target_global_pos = vp.position + vp.size * 0.5
+
+	# Stagger times between cards (used by the arc fallback)
+	var move_duration = 0.36
+
+	# Launch disintegration for all cards that support it, and start arc
+	# animations in parallel for cards that don't. Then wait until all
+	# cards have been handed off to the discard pile (or timeout).
+	var dz_shader = null
+	for zone in get_tree().get_nodes_in_group("drop_zones"):
+		if zone and zone.has_method("on_card_dropped") and "disintegration_shader" in zone:
+			dz_shader = zone.disintegration_shader
+			break
+
+	var anim_tweens: Array = []
+	var disintegrating_cards: Array = []
+
+	var scene_root = get_tree().get_current_scene()
+
+	for card in all_cards:
+		if not is_instance_valid(card):
+			continue
+
+		# Ensure card is reparented to the current scene root so global_position tweens work
+		if scene_root and card.get_parent() != scene_root:
+			card.get_parent().remove_child(card)
+			scene_root.add_child(card)
+
+		if card.has_method("apply_disintegration"):
+			# Trigger disintegration simultaneously
+			card.apply_disintegration(dz_shader, 0.0, 1.0, 0.9, Tween.EASE_IN, Tween.TRANS_SINE)
+			disintegrating_cards.append(card)
+		else:
+			# Fallback: animate arc-to-discard in parallel
+			var spawn_pos = card.global_position
+			var mid_pos = Vector2(lerp(spawn_pos.x, target_global_pos.x, 0.5), lerp(spawn_pos.y, target_global_pos.y, 0.5) - 120)
+			var t = create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
+			t.tween_method(func(progress):
+				var p1 = spawn_pos.lerp(mid_pos, progress)
+				var p2 = mid_pos.lerp(target_global_pos, progress)
+				if is_instance_valid(card):
+					card.global_position = p1.lerp(p2, progress)
+			, 0.0, 1.0, move_duration)
+			if card is CanvasItem:
+				t.parallel().tween_property(card, "scale", card.scale * 0.92, move_duration * 0.6)
+				t.parallel().tween_property(card, "rotation", card.rotation + deg_to_rad(6.0), move_duration)
+			anim_tweens.append({"tween": t, "card": card})
+
+	# Wait for all non-disintegration tweens to finish, then hand off those cards
+	for entry in anim_tweens:
+		var tw = entry["tween"]
+		var c = entry["card"]
+		await tw.finished
+		if main_node and main_node.has_method("add_to_discard_pile") and is_instance_valid(c):
+			main_node.add_to_discard_pile(c)
+		elif discard_node and discard_node.has_method("add_card") and is_instance_valid(c):
+			discard_node.add_card(c)
+		else:
+			if is_instance_valid(c):
+				c.queue_free()
+
+	# Now wait for disintegrating cards to be handed to the discard node
+	var waited_total = 0.0
+	var poll_dt = 0.05
+	var timeout_total = 6.0
+	if disintegrating_cards.size() > 0:
+		while waited_total < timeout_total:
+			var all_done = true
+			for dcard in disintegrating_cards:
+				if not is_instance_valid(dcard):
+					continue
+				if discard_node:
+					if dcard.get_parent() != discard_node:
+						all_done = false
+						break
+				else:
+					# If there's no discard node to poll, assume the card will free
+					# itself or be reparented by the card logic; just wait a short time
+					all_done = false
+					break
+			if all_done:
+				break
+			await get_tree().create_timer(poll_dt).timeout
+			waited_total += poll_dt
+		# If no discard_node, give a small grace period to let cards finish
+		if not discard_node:
+			await get_tree().create_timer(0.9).timeout
+
+	# Finally, ensure both hands are relaid out
+	relayout_hand(true)
+	relayout_hand(false)
+
+
 func relayout_hand(is_player: bool = true) -> void:
 	"""Reposition existing cards to fill gaps using HandSlots."""
 	
-	# print("[CardManager] relayout_hand called for %s hand" % ("player" if is_player else "opponent"))
+	# relayout_hand called
 
 	# Collect cards for the specified hand
 	var cards: Array = []
@@ -241,7 +478,7 @@ func relayout_hand(is_player: bool = true) -> void:
 					continue
 			cards.append(child)
 	
-	# print("[CardManager] Found %d cards to relayout for %s" % [cards.size(), "player" if is_player else "opponent"])
+	# found cards to relayout
 
 	# Sort by card_index if available to preserve intended order
 	cards.sort_custom(Callable(self, "_sort_by_card_index"))

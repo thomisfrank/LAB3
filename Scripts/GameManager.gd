@@ -176,13 +176,44 @@ func _handle_round_end() -> void:
 	var p1_score: int = round_manager.calculate_player_score(Player.PLAYER_ONE)
 	var p2_score: int = round_manager.calculate_player_score(Player.PLAYER_TWO)
 
+	# Capture the card lists (name + value) for the end-round UI before we discard them
+	var player_cards_info: Array = []
+	var opponent_cards_info: Array = []
+	var card_data_loader = get_node_or_null("/root/CardDataLoader")
+	if card_manager and card_manager.has_method("get_hand_cards"):
+		var p_cards = card_manager.get_hand_cards(true)
+		for c in p_cards:
+			if is_instance_valid(c) and "card_name" in c and c.card_name and card_data_loader:
+				var data = card_data_loader.get_card_data(c.card_name)
+				var val = 0
+				if data and data.has("value"):
+					val = int(data["value"])
+				player_cards_info.append({"name": c.card_name, "value": val})
+		var o_cards = card_manager.get_hand_cards(false)
+		for c in o_cards:
+			if is_instance_valid(c) and "card_name" in c and c.card_name and card_data_loader:
+				var data2 = card_data_loader.get_card_data(c.card_name)
+				var val2 = 0
+				if data2 and data2.has("value"):
+					val2 = int(data2["value"])
+				opponent_cards_info.append({"name": c.card_name, "value": val2})
+
 	# 2. Declaration & Compensation: Player with the lowest total wins.
 	_process_round_result(p1_score, p2_score)
 
 	# 3. End Round: All cards are discarded.
-	round_manager.discard_hands()
+	if round_manager and round_manager.has_method("discard_hands"):
+		await round_manager.discard_hands()
 
-	# 4. Check for Game End
+	# 4. Show end-round UI, then check for Game End or start the next round
+	if ui_manager and ui_manager.has_method("show_end_round_screen"):
+		# Determine winner string for the UI call (0=player)
+		var winner = Player.PLAYER_ONE if p1_score < p2_score else Player.PLAYER_TWO if p2_score < p1_score else -1
+		ui_manager.show_end_round_screen(winner, p1_score, p2_score, player_cards_info, opponent_cards_info)
+		if ui_manager.has_method("await_end_round_close"):
+			await ui_manager.await_end_round_close()
+
+	# After the end-round UI is dismissed, proceed
 	if card_manager.is_deck_depleted():
 		set_game_state(GameState.GAME_OVER)
 	else:
@@ -237,7 +268,7 @@ func _determine_starting_player() -> int:
 
 func _process_round_result(p1_score: int, p2_score: int) -> void:
 	# Objective: Lowest Total WINS the round. Winner adds their total to their Score.
-	var info_screen_manager = ui_manager.get_info_screen_manager() # Assuming UIManager has a getter
+	var info_screen_manager = get_node_or_null("/root/InfoScreenManager")
 
 	if p1_score < p2_score:
 		add_score(Player.PLAYER_ONE, p1_score)

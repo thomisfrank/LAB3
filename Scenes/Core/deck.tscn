@@ -1,9 +1,12 @@
-[gd_scene load_steps=14 format=3 uid="uid://gdkre2xkksra"]
+[gd_scene load_steps=22 format=3 uid="uid://gdkre2xkksra"]
 
 [ext_resource type="Shader" uid="uid://dnb21ffhlaf34" path="res://Scripts/Shader/deckPile.gdshader" id="1_nu14p"]
 [ext_resource type="Shader" uid="uid://dl18pdf50a4mb" path="res://Scripts/Shader/CardBorder.gdshader" id="2_yw5xw"]
 [ext_resource type="Shader" uid="uid://dyirwv38vux2g" path="res://Scripts/Shader/CardGradient.gdshader" id="3_1rw5a"]
 [ext_resource type="Texture2D" uid="uid://c5hggaaw5c51v" path="res://Assets/CardFramework/Logo.png" id="4_3ybx4"]
+[ext_resource type="Shader" uid="uid://bj1asd5qhlhol" path="res://Scripts/Shader/smallDisplay.gdshader" id="5_hajyr"]
+[ext_resource type="Shader" uid="uid://c82r54bghps0l" path="res://Scripts/Shader/TextJitter.gdshader" id="6_uidf1"]
+[ext_resource type="FontFile" uid="uid://cwx8a1d8i5udy" path="res://Assets/fonts/Seven Segment.ttf" id="7_tv0wq"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_fgcbx"]
 shader = ExtResource("1_nu14p")
@@ -37,8 +40,8 @@ shader = ExtResource("3_1rw5a")
 shader_parameter/color_light = Color(0.4862745, 0.6862745, 0.8901961, 1)
 shader_parameter/color_mid = Color(0.17254902, 0.24313726, 0.3137255, 1)
 shader_parameter/color_dark = Color(0.07450981, 0.12156863, 0.16862746, 1)
-shader_parameter/radius_light = 0.2790000132525
-shader_parameter/radius_mid = 0.5150000244625
+shader_parameter/radius_light = 0.2290000108775
+shader_parameter/radius_mid = 0.354000016815
 shader_parameter/radius_dark = 1.0
 shader_parameter/swirl_speed = 0.5
 shader_parameter/softness = 0.7
@@ -57,6 +60,40 @@ gradient = SubResource("Gradient_5k18p")
 width = 460
 height = 660
 fill = 1
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_5k18p"]
+shader = ExtResource("5_hajyr")
+shader_parameter/box_color = Color(0.2, 0.18039216, 0.21960784, 1)
+shader_parameter/line_color = Color(0.34901962, 0.34901962, 0.38039216, 1)
+shader_parameter/corner_radius = 0.1
+shader_parameter/line_thickness = 0.003
+shader_parameter/line_position1 = 0.33
+shader_parameter/line_position2 = 0.67
+shader_parameter/gleam_color = Color(1, 1, 1, 0.1)
+shader_parameter/gleam_speed = 0.18400000874
+shader_parameter/gleam_width = 0.5330000253175
+shader_parameter/curvature_amount = 0.206000009785
+shader_parameter/vignette_intensity = 0.490000023275
+shader_parameter/vignette_softness = 1.2590000565426198
+shader_parameter/dirt_intensity = 0.0730000034675
+shader_parameter/dirt_scale = 50.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_pln5c"]
+shader = ExtResource("6_uidf1")
+shader_parameter/jitter_rate = 8.0
+shader_parameter/jitter_amount = 0.003
+
+[sub_resource type="LabelSettings" id="LabelSettings_f3jj0"]
+font = ExtResource("7_tv0wq")
+font_size = 48
+font_color = Color(0.42309913, 0.3384412, 0.007225677, 0.4117647)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_dvfbp"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_3mhrx"]
+font = ExtResource("7_tv0wq")
+font_size = 48
+font_color = Color(0.94509804, 0.76862746, 0.05882353, 1)
 
 [node name="Deck" type="Node2D"]
 
@@ -91,7 +128,7 @@ texture = SubResource("GradientTexture2D_yw5xw")
 
 [node name="TopCard" type="Sprite2D" parent="."]
 material = SubResource("ShaderMaterial_hajyr")
-position = Vector2(288, 348)
+position = Vector2(288, 347)
 texture = SubResource("GradientTexture2D_uidf1")
 
 [node name="Background" type="Sprite2D" parent="TopCard"]
@@ -101,3 +138,54 @@ texture = SubResource("GradientTexture2D_pln5c")
 [node name="Icon" type="Sprite2D" parent="TopCard"]
 position = Vector2(-1, -22)
 texture = ExtResource("4_3ybx4")
+
+[node name="DeckCounter" type="ColorRect" parent="."]
+material = SubResource("ShaderMaterial_5k18p")
+offset_left = 98.00001
+offset_top = 757.0
+offset_right = 268.0
+offset_bottom = 844.0
+scale = Vector2(2.091648, 2.091648)
+
+[node name="HBoxContainer" type="HBoxContainer" parent="DeckCounter"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -69.22297
+offset_top = -25.810596
+offset_right = 68.77704
+offset_bottom = 25.189407
+grow_horizontal = 2
+grow_vertical = 2
+alignment = 1
+
+[node name="NoValueLabel" type="Label" parent="DeckCounter/HBoxContainer"]
+material = SubResource("ShaderMaterial_pln5c")
+layout_mode = 2
+text = "0"
+label_settings = SubResource("LabelSettings_f3jj0")
+
+[node name="HSeparator" type="HSeparator" parent="DeckCounter/HBoxContainer"]
+custom_minimum_size = Vector2(17, 0)
+layout_mode = 2
+theme_override_styles/separator = SubResource("StyleBoxEmpty_dvfbp")
+
+[node name="DeckDigit1Label" type="Label" parent="DeckCounter/HBoxContainer"]
+material = SubResource("ShaderMaterial_pln5c")
+layout_mode = 2
+text = "5"
+label_settings = SubResource("LabelSettings_3mhrx")
+
+[node name="HSeparator2" type="HSeparator" parent="DeckCounter/HBoxContainer"]
+custom_minimum_size = Vector2(25, 0)
+layout_mode = 2
+theme_override_styles/separator = SubResource("StyleBoxEmpty_dvfbp")
+
+[node name="DeckDigit2Label" type="Label" parent="DeckCounter/HBoxContainer"]
+material = SubResource("ShaderMaterial_pln5c")
+layout_mode = 2
+text = "2"
+label_settings = SubResource("LabelSettings_3mhrx")

@@ -9,34 +9,30 @@ extends Button
 @onready var background = $CardFace/Background
 
 func set_card_data(data_name: String) -> void:
-	print("[Card] set_card_data called with: ", data_name)
 	var card_data_loader = get_node_or_null("/root/CardDataLoader")
 	if not card_data_loader:
-		print("[Card] ERROR: CardDataLoader not found!")
+		push_error("[Card] ERROR: CardDataLoader not found!")
 		return
 	
 	var data = card_data_loader.get_card_data(data_name)
 	if data.is_empty():
-		print("[Card] ERROR: No data found for: ", data_name)
+		push_error("[Card] ERROR: No data found for: %s" % data_name)
 		return
 	
-	print("[Card] Applying data: ", data)
+	# Applying card data silently
 	
 	if data.has("icon_path"):
 		var texture = load("res://Assets/CardFramework/" + data["icon_path"])
 		if texture:
 			card_icon.texture = texture
-			print("[Card] Set icon to: ", data["icon_path"])
 	
 	if data.has("value"):
 		value_label.text = data["value"]
 		value_label2.text = data["value"]
-		print("[Card] Set value to: ", data["value"])
 	
 	if data.has("suit"):
 		suit_label.text = data["suit"]
 		suit_label2.text = data["suit"]
-		print("[Card] Set suit to: ", data["suit"])
 	
 	# Set the shader colors if all three exist in the data
 	if background.material and data.has("color_a") and data.has("color_b") and data.has("color_c"):

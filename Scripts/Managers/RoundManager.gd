@@ -45,7 +45,7 @@ var opponent_hand_center: Vector2
 
 func _ready() -> void:
 	pass
-	# print("RoundManager: _ready called")
+	# ready
 	
 	# NEW: Calculate the hand positions based on screen size first.
 	_calculate_hand_positions()
@@ -64,14 +64,12 @@ func _ready() -> void:
 		card_manager = game_manager.get_manager("CardManager")
 		ui_manager = game_manager.get_manager("UIManager")
 		turn_manager = game_manager.get_manager("TurnManager")
-		# print("RoundManager: card_manager from GameManager =", card_manager)
-		# print("RoundManager: ui_manager from GameManager =", ui_manager)
-		# print("RoundManager: turn_manager from GameManager =", turn_manager)
+		# managers retrieved from GameManager (suppressed logs)
 
 	# Fallback to scene lookups if still null
 	if not card_manager:
 		card_manager = get_node_or_null("/root/main/Parallax/CardManager")
-		# print("RoundManager: card_manager from fallback =", card_manager)
+		# fallback card_manager lookup
 	if not ui_manager:
 		pass
 		# print("RoundManager: WARNING - ui_manager is null after get_manager, this shouldn't happen!")
@@ -79,11 +77,11 @@ func _ready() -> void:
 	# If we have a GameManager autoload, register ourselves so GameManager can reference us
 	if game_manager and game_manager.has_method("register_manager"):
 		pass
-		# print("RoundManager: registering with GameManager")
+		# registering with GameManager (suppressed log)
 		game_manager.register_manager("RoundManager", self)
 	else:
 		pass
-		# print("RoundManager: GameManager not found on register step or no register method")
+		# GameManager register step unavailable (suppressed log)
 
 	# Ensure we have at least the critical references
 	if not game_manager:
@@ -122,9 +120,7 @@ func _calculate_hand_positions() -> void:
 	var opponent_y = top_edge_y + (opponent_card_size.y / 6.0)
 	opponent_hand_center = Vector2(center_x + opponent_hand_offset_x, opponent_y)
 
-	# print("RoundManager: Camera visible rect is %s" % visible_rect)
-	# print("RoundManager: Calculated player hand center: %s" % player_hand_center)
-	# print("RoundManager: Calculated opponent hand center: %s" % opponent_hand_center)
+	# camera and hand centers calculated
 
 
 
@@ -132,20 +128,19 @@ func _calculate_hand_positions() -> void:
 # Called by the GameManager to begin a new round.
 func start_new_round(starter: int) -> void:
 	# ... (rest of the file is unchanged) ...
-	# print("RoundManager: start_new_round called with starter=", starter)
+	# start_new_round called
 	
 	# Re-fetch managers from GameManager in case they weren't ready during _ready()
 	if game_manager and game_manager.has_method("get_manager"):
 		if not ui_manager:
 			ui_manager = game_manager.get_manager("UIManager")
-			# print("RoundManager: Re-fetched ui_manager =", ui_manager)
+			# re-fetched ui_manager (suppressed log)
 		if not card_manager:
 			card_manager = game_manager.get_manager("CardManager")
 	
 	if not card_manager or not ui_manager:
 		push_error("RoundManager cannot start round: Manager references are null.")
-		# print("RoundManager: card_manager =", card_manager)
-		# print("RoundManager: ui_manager =", ui_manager)
+		# manager state (suppressed logs)
 		# We can transition to GAME_OVER or stop if we can't run.
 		return
 
@@ -164,6 +159,11 @@ func start_new_round(starter: int) -> void:
 	# Show loading overlay while we prepare to draw cards
 	if ui_manager and ui_manager.has_method("show_loading"):
 		ui_manager.show_loading()
+	
+	# Ensure action panels start in the 'off' state if UIManager supports it
+	if ui_manager and ui_manager.has_method("set_active_player"):
+		# Pass false to indicate panels should be in the 'off' visual
+		ui_manager.set_active_player(false)
 	
 	# TODO: Display the round start overlay/dialogue when InfoScreenManager is ready
 	# var starter_name = "YOU" if current_starter == game_manager.Player.PLAYER_ONE else "OPPONENT"
@@ -190,18 +190,17 @@ func start_new_round(starter: int) -> void:
 			actual_player_start = deck_node.global_position
 			actual_opponent_start = deck_node.global_position
 
-		# print("RoundManager: drawing %d cards for PLAYER_ONE from" % player_card_count, actual_player_start, "to hand center", player_hand_center)
-		# print("RoundManager: Setting card_manager values - spacing:", player_hand_spacing, "angle:", player_fan_angle_degrees, "size:", player_card_size)
+		# drawing player cards
 		card_manager.card_spacing = player_hand_spacing
 		card_manager.fan_angle_degrees = player_fan_angle_degrees
 		card_manager.card_size = player_card_size
-		# print("RoundManager: card_manager values after setting - spacing:", card_manager.card_spacing, "angle:", card_manager.fan_angle_degrees)
+		# card_manager values set
 		card_manager.draw_cards(player_card_count, actual_player_start, player_hand_center, true, true)  # face_up=true, is_player=true
 
 		# Small buffer before dealing opponent (so animations don't overlap awkwardly)
 		var buffer_time = 0.15
 		# Draw opponent hand face-down after a short delay
-		# print("RoundManager: scheduling opponent draw in", buffer_time, "seconds")
+		# scheduling opponent draw
 		var tween = create_tween()
 		tween.tween_interval(buffer_time)
 		tween.tween_callback(func(): _draw_opponent_delayed(opponent_card_count, actual_opponent_start, opponent_hand_center))
@@ -213,12 +212,12 @@ func start_new_round(starter: int) -> void:
 		card_manager.draw_stagger = prev_stagger
 	else:
 		pass
-		# print("RoundManager: card_manager.draw_cards not available; skipping auto-draw")
+		# card_manager.draw_cards not available - skipping
 
 func _draw_opponent_delayed(count: int, start_pos: Vector2, hand_center: Vector2) -> void:
 	if not card_manager:
 		return
-	# print("RoundManager: drawing %d cards for PLAYER_TWO from" % count, start_pos, "to hand center", hand_center)
+	# drawing opponent cards
 	card_manager.card_spacing = opponent_hand_spacing
 	card_manager.fan_angle_degrees = opponent_fan_angle_degrees
 	card_manager.card_size = opponent_card_size
@@ -235,11 +234,11 @@ func _draw_opponent_delayed(count: int, start_pos: Vector2, hand_center: Vector2
 
 	if turn_manager and turn_manager.has_method("start_turn_management"):
 		pass
-		# print("RoundManager: Activating TurnManager with starter", current_starter)
+		# activating TurnManager
 		turn_manager.start_turn_management(current_starter)
 	else:
 		pass
-		# print("RoundManager: WARNING - TurnManager not available; scheduling deferred retry")
+		# TurnManager not available, scheduling retry
 		# Give other nodes a short moment to finish _ready() and register
 		var retry_tween = create_tween()
 		retry_tween.tween_interval(0.1)
@@ -252,7 +251,7 @@ func _draw_opponent_delayed(count: int, start_pos: Vector2, hand_center: Vector2
 			
 			if turn_manager and turn_manager.has_method("start_turn_management"):
 				pass
-				# print("RoundManager: Deferred activation found TurnManager; starting with starter", current_starter)
+				# Deferred activation found TurnManager
 				turn_manager.start_turn_management(current_starter)
 			else:
 				pass
@@ -265,20 +264,34 @@ func _draw_opponent_delayed(count: int, start_pos: Vector2, hand_center: Vector2
 
 # Calculates the total value of all cards in a player's hand.
 func calculate_player_score(player_id: int) -> int:
-	# ... (Logic remains the same) ...
 	if not card_manager: return 9999
 
-	var hand: Array = card_manager.get_player_hand(player_id)
+	var is_player = (player_id == 0) # Corresponds to GameManager.Player.PLAYER_ONE
+	var hand_nodes: Array = card_manager.get_hand_cards(is_player)
+	
+	var card_data_loader = get_node_or_null("/root/CardDataLoader")
+	if not card_data_loader:
+		push_error("CardDataLoader not found!")
+		return 9999
+
 	var total_value: int = 0
-	for card_data in hand:
-		total_value += card_data.get("value", 0) 
+	for card_node in hand_nodes:
+		if "card_name" in card_node:
+			var card_name = card_node.card_name
+			if card_name:
+				var card_data = card_data_loader.get_card_data(card_name)
+				if card_data and card_data.has("value"):
+					# Ensure value is treated as an integer
+					total_value += int(card_data["value"])
 	return total_value
 
 
 # Called by GameManager at the end of the round to clear the table.
 func discard_hands() -> void:
-	if card_manager:
-		card_manager.discard_all_hands()
+	if card_manager and card_manager.has_method("discard_all_hands"):
+		# Await the card manager's discard animation sequence so callers can wait
+		# for the visual hand clearing to finish before proceeding.
+		await card_manager.discard_all_hands()
 
 
 # --- Private Logic Helpers ---

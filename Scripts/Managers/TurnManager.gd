@@ -11,6 +11,14 @@ var _deferred_ai_mgr: Node = null
 var current_player: int = 0  # Use GameManager.Player enum semantics: 0 = PLAYER_ONE (you), 1 = PLAYER_TWO (opponent)
 var is_player_turn: bool = true
 
+# Track whether each side has taken their turn this round. When both true, round should end.
+var player_had_turn: bool = false
+var opponent_had_turn: bool = false
+
+# Delay after final pass before ending round
+@export_group("Round Timing")
+@export var end_round_delay_after_pass: float = 1.5
+
 # --- Action Tracking ---
 @export_group("Turn Settings")
 @export var actions_per_turn: int = 2
@@ -35,26 +43,25 @@ func _delayed_transition(delay: float, id: int) -> void:
 	_execute_scheduled_transition(id)
 
 func _execute_scheduled_transition(id: int) -> void:
-	# Only execute if id matches latest
 	if id != _turn_transition_id:
-		pass
-		# print("TurnManager: scheduled transition id", id, "cancelled (current=", _turn_transition_id, ")")
 		return
-	# print("TurnManager: executing scheduled transition id", id)
+
 	# Ensure ui_manager is resolved (registration order may vary)
 	if not ui_manager and game_manager and game_manager.has_method("get_manager"):
 		ui_manager = game_manager.get_manager("UIManager")
 	if not ui_manager:
-		# Fallback scene path
 		ui_manager = get_node_or_null("/root/main/FrontLayerUI/UIPanel")
 
-	# Optionally show the turn overlay for the upcoming player (if enabled)
-	if show_turn_overlay:
-		var upcoming_is_player_turn = not is_player_turn
-		if ui_manager and ui_manager.has_method("show_turn_message"):
-			ui_manager.show_turn_message(upcoming_is_player_turn)
+	if not is_player_turn:
+		_handle_opponent_action()
+	else:
+		# Existing logic for player turn
+		if show_turn_overlay:
+			var upcoming_is_player_turn = not is_player_turn
+			if ui_manager and ui_manager.has_method("show_turn_message"):
+				ui_manager.show_turn_message(upcoming_is_player_turn)
 
-	next_turn()
+		next_turn()
 
 # --- UI Opacity Settings ---
 @export_group("UI Opacity Settings")
@@ -73,6 +80,18 @@ func _execute_scheduled_transition(id: int) -> void:
 # If false, action icons will be visually unfilled at game/round start even if counts are full
 @export var fill_icons_on_start: bool = false
 @export var end_of_actions_delay: float = 2.0
+
+# Particle used for opponent pass feedback (optional: set in Inspector)
+@export_group("Pass Effect")
+@export var pass_particle_texture: Texture2D
+@export var pass_particle_amount: int = 28
+@export var pass_particle_lifetime: float = 0.9
+@export var pass_particle_speed: float = 260.0
+@export var pass_particle_spread_degrees: float = 180.0
+@export var pass_particle_gravity: Vector3 = Vector3(0, 98, 0)
+@export var pass_particle_scale_min: float = 0.1
+@export var pass_particle_scale_max: float = 0.3
+@export var pass_particle_color: Color = Color.WHITE
 
 func _ready() -> void:
 	pass
@@ -139,6 +158,10 @@ func start_turn_management(starting_player: int) -> void:
 	# Consider PLAYER_ONE (0) as the local player
 	is_player_turn = (current_player == 0)
 
+	# Reset per-round 'had turn' flags when beginning turn management (new round)
+	player_had_turn = false
+	opponent_had_turn = false
+
 	# Give actions only to the active player: active gets full pool, inactive gets 0
 	if is_player_turn:
 		player_actions_remaining = actions_per_turn
@@ -193,6 +216,13 @@ func _force_set_action_icons_fill(panel: Node, target_opacity: float) -> void:
 ## Switch to the next player's turn
 func next_turn() -> void:
 	# Switch player
+	# Record that the previous player has completed their turn
+	var prev_player = current_player
+	if prev_player == 0:
+		player_had_turn = true
+	else:
+		opponent_had_turn = true
+
 	# Toggle between 0 (PLAYER_ONE) and 1 (PLAYER_TWO)
 	current_player = 1 if current_player == 0 else 0
 	is_player_turn = (current_player == 0)
@@ -270,6 +300,32 @@ func _update_action_ui() -> void:
 	if ui_manager and ui_manager.has_method("set_pass_button_enabled"):
 		var enable_pass = is_player_turn and player_actions_remaining > 0
 		ui_manager.set_pass_button_enabled(enable_pass)
+
+	# Additionally, ensure the opponent's pass button is not interactive for the player
+	# Find the opponent pass button and disable input when it's the player's turn
+	var opp_pass_button = get_node_or_null("/root/main/FrontLayerUI/UIPanel/PanelBG/VBoxContainer/TurnEconomy/OpponentUI/PassButton")
+	if opp_pass_button:
+		# If it's the player's turn, prevent hovering/clicking the opponent's pass button
+		if is_player_turn:
+			# For Control nodes, set mouse_filter to ignore and disabled if present
+			if opp_pass_button is Control:
+				opp_pass_button.mouse_filter = Control.MOUSE_FILTER_IGNORE
+				if "disabled" in opp_pass_button:
+					opp_pass_button.disabled = true
+			else:
+				# For Node2D fallbacks, set visible=false for its input area or disable signals as needed
+				# We'll leave visual intact; just avoid user interactions
+				if opp_pass_button.has_method("set_pickable"):
+					opp_pass_button.set_pickable(false)
+		else:
+			# When it's not the player's turn, restore interactivity so AI effects still animate
+			if opp_pass_button is Control:
+				opp_pass_button.mouse_filter = Control.MOUSE_FILTER_PASS
+				if "disabled" in opp_pass_button:
+					opp_pass_button.disabled = false
+			else:
+				if opp_pass_button.has_method("set_pickable"):
+					opp_pass_button.set_pickable(true)
 
 	# print("TurnManager: action UI updated -> player_actions_remaining:", player_actions_remaining, "opponent_actions_remaining:", opponent_actions_remaining, "is_player_turn:", is_player_turn)
 
@@ -469,16 +525,87 @@ func record_action_played(is_player_card: bool) -> void:
 
 	_update_action_ui()
 
-## Public API: current player presses pass (forgo remaining actions)
 func pass_current_player() -> void:
 	if is_player_turn:
 		player_actions_remaining = 0
+		player_had_turn = true
 	else:
 		opponent_actions_remaining = 0
+		opponent_had_turn = true
+		_trigger_opponent_pass_effects()
 
 	_update_action_ui()
-	# When a player passes, schedule the next turn after a short delay
+
+	if player_had_turn and opponent_had_turn:
+		var gm = get_node_or_null("/root/GameManager")
+		if gm and gm.has_method("set_game_state"):
+			await get_tree().create_timer(end_round_delay_after_pass).timeout
+			gm.set_game_state(gm.GameState.ROUND_END)
+			return
+
 	_schedule_turn_transition(end_of_actions_delay)
+
+func _trigger_opponent_pass_effects() -> void:
+	# Trigger visual feedback for opponent's pass button
+	var pass_button = get_node_or_null("/root/main/FrontLayerUI/UIPanel/PanelBG/VBoxContainer/TurnEconomy/OpponentUI/PassButton")
+	if pass_button:
+		# Animate button press with a dark flash
+		var tween = create_tween()
+		tween.tween_property(pass_button, "modulate", Color.GRAY, 0.1).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+		tween.tween_property(pass_button, "modulate", Color.WHITE, 0.2).set_delay(0.1)
+
+		# Spawn a one-shot GPUParticles2D burst centered on the pass button
+		var center_pos = Vector2.ZERO
+		if pass_button is Control and pass_button.has_method("get_global_rect"):
+			var gr = pass_button.get_global_rect()
+			center_pos = gr.position + gr.size * 0.5
+		elif "global_position" in pass_button:
+			center_pos = pass_button.global_position
+		else:
+			if "rect_global_position" in pass_button and "rect_size" in pass_button:
+				center_pos = pass_button.rect_global_position + pass_button.rect_size * 0.5
+
+		var particles = GPUParticles2D.new()
+		particles.one_shot = true
+		particles.amount = pass_particle_amount
+		particles.lifetime = pass_particle_lifetime
+		particles.emitting = true
+
+		# Configure a basic ProcessMaterial for velocity/angle
+		var pm = ParticleProcessMaterial.new()
+		pm.direction = Vector3(0, -1, 0)
+		pm.spread = deg_to_rad(pass_particle_spread_degrees)
+		pm.initial_velocity_min = pass_particle_speed
+		pm.initial_velocity_max = pass_particle_speed
+		pm.gravity = pass_particle_gravity
+		pm.scale_min = pass_particle_scale_min
+		pm.scale_max = pass_particle_scale_max
+		pm.color = pass_particle_color
+		particles.process_material = pm
+
+		if pass_particle_texture:
+			particles.texture = pass_particle_texture
+
+		particles.position = center_pos
+		
+		var front_layer = get_node_or_null("/root/main/FrontLayerUI")
+		if front_layer:
+			front_layer.add_child(particles)
+		else:
+			add_child(particles)
+
+		var free_delay = pass_particle_lifetime + 0.2
+		var particle_timer = get_tree().create_timer(free_delay)
+		await particle_timer.timeout
+		if is_instance_valid(particles):
+			particles.queue_free()
+
+	var info_manager = get_node_or_null("/root/main/Managers/InfoScreenManager")
+	if info_manager and info_manager.has_method("show_opponent_pass_commentary"):
+		info_manager.show_opponent_pass_commentary()
+		if info_manager.has_signal("typing_finished"):
+			await info_manager.typing_finished
+			await get_tree().create_timer(1.0).timeout
 
 ## Set opacity for opponent UI panel
 func _set_side_ui_opacity(side_name: String, opacity: float) -> void:
@@ -517,7 +644,7 @@ func _set_side_ui_opacity(side_name: String, opacity: float) -> void:
 	_animate_ui_opacity(panel, opacity)
 
 	# Also try to dim any action icons (ColorRect children with ShaderMaterial) under an ActionIcons container
-	_adjust_action_icons(panel, opacity)
+	_adjust_action_icons(panel, opacity_transition_duration)
 
 ## Animate a UI element's opacity
 func _animate_ui_opacity(ui_element: Node, target_opacity: float) -> void:
@@ -630,3 +757,12 @@ func get_current_player() -> int:
 
 func get_is_player_turn() -> bool:
 	return is_player_turn
+
+func _handle_opponent_action() -> void:
+	if opponent_actions_remaining == 1:
+		# Automatically pass as the second action
+		pass_current_player()
+	else:
+		# Perform the opponent's first action (e.g., play a card or other logic)
+		opponent_actions_remaining -= 1
+		_update_action_ui()

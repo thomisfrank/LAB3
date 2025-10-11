@@ -1,6 +1,7 @@
 extends Node
 
 signal start_sequence_finished
+signal end_round_closed
 signal turn_message_finished
 
 @export_group("Loading")
@@ -32,12 +33,12 @@ var loading_rect: Node
 
 func _ready() -> void:
 	pass
-	# print("UIManager: _ready called.")
+	# UIManager ready (debug suppressed)
 	# Resolve references whether this script is attached to UIPanel or lives under Managers
 	# If UIManager is attached to UIPanel, prefer local lookups via the node itself
 	if name == "UIPanel":
 		pass
-		# print("UIManager: I AM the UIPanel node, using self")
+		# Attached to UIPanel (suppressed)
 		ui_panel = self
 		var front_layer = ui_panel.get_parent()
 		if front_layer:
@@ -46,63 +47,52 @@ func _ready() -> void:
 			end_game_tray = front_layer.get_node_or_null("EndGameTray")
 	else:
 		pass
-		# print("UIManager: I am NOT UIPanel (name=", name, "), looking up UI elements")
+		# Not attached to UIPanel; resolving UI elements (suppressed)
 		# Try to get main node first
 		var main_node = get_node_or_null("/root/main")
-		# print("UIManager: main_node =", main_node)
-		
 		if main_node:
 			var front_layer = main_node.get_node_or_null("FrontLayerUI")
-			# print("UIManager: front_layer =", front_layer)
-			
+			# front_layer resolved (suppressed)
 			if front_layer:
 				game_state_overlay = front_layer.get_node_or_null("GameStateOverlay")
 				end_round_tray = front_layer.get_node_or_null("EndRoundTray")
 				end_game_tray = front_layer.get_node_or_null("EndGameTray")
 				ui_panel = front_layer.get_node_or_null("UIPanel")
-				
-				# print("UIManager: game_state_overlay =", game_state_overlay)
-				# print("UIManager: end_round_tray =", end_round_tray)
-				# print("UIManager: end_game_tray =", end_game_tray)
-				# print("UIManager: ui_panel =", ui_panel)
+				# UI elements found (suppressed)
 
 	if not game_state_overlay or not end_round_tray or not end_game_tray or not ui_panel:
 		push_error("UIManager: Could not find one or more UI elements!")
 		if not game_state_overlay:
 			pass
-			# print("UIManager: Missing game_state_overlay")
+			# missing game_state_overlay (suppressed)
 		if not end_round_tray:
 			pass
-			# print("UIManager: Missing end_round_tray")
+			# missing end_round_tray (suppressed)
 		if not end_game_tray:
 			pass
-			# print("UIManager: Missing end_game_tray")
+			# missing end_game_tray (suppressed)
 		if not ui_panel:
 			pass
-			# print("UIManager: Missing ui_panel")
+			# missing ui_panel (suppressed)
 	else:
 		pass
-		# print("UIManager: All UI elements found.")
-		# Extra diagnostics: print node paths and initial label states
-		# print("UIManager: ui_panel path:", ui_panel.get_path())
+		# UI elements ready (suppressed)
+		# Extra diagnostics suppressed
 		var fl = ui_panel.get_parent()
 		if fl:
 			pass
-			# print("UIManager: front_layer path:", str(fl.get_path()))
+			# front_layer path available (suppressed)
 		else:
 			pass
-			# print("UIManager: front_layer path: null")
-		# print("UIManager: game_state_overlay:", game_state_overlay.get_path())
-		# print("UIManager: end_round_tray:", end_round_tray.get_path())
-		# print("UIManager: end_game_tray:", end_game_tray.get_path())
+			# front_layer path null (suppressed)
 		# Check overlay label presence
 		var overlay_label = game_state_overlay.get_node_or_null("CenterContainer/GameState") if game_state_overlay else null
 		if overlay_label:
 			pass
-			# print("UIManager: overlay label found, text=", overlay_label.text, "modulate.a=", overlay_label.modulate.a)
+			# overlay label found (suppressed)
 		else:
 			pass
-			# print("UIManager: overlay label NOT found at CenterContainer/GameState")
+			# overlay label not found (suppressed)
 
 
 	# If GameManager is autoloaded or present in the scene, register this UIManager so GameManager can find it
@@ -112,15 +102,15 @@ func _ready() -> void:
 		gm = get_node_or_null(p)
 		if gm:
 			pass
-			# print("UIManager: found GameManager at", p)
+			# GameManager located (suppressed)
 			break
 	if gm and gm.has_method("register_manager"):
 		pass
-		# print("UIManager: registering with GameManager")
+		# registering with GameManager (suppressed)
 		gm.register_manager("UIManager", self)
 	else:
 		pass
-		# print("UIManager: GameManager not found or has no register_manager")
+		# GameManager registration skipped (suppressed)
 	
 	# Get child nodes from UIPanel for scores, round display, etc.
 	if ui_panel:
@@ -129,10 +119,10 @@ func _ready() -> void:
 			round_label = base.get_node_or_null("RoundTitle/Round#")
 			if round_label:
 				pass
-				# print("UIManager: round_label found at", round_label.get_path(), "initial text=", round_label.text)
+				# round_label found (suppressed)
 			else:
 				pass
-				# print("UIManager: round_label not found under PanelBG/VBoxContainer/RoundTitle/Round#")
+				# round_label not found (suppressed)
 			# Scoreboxes (each contains three digit labels)
 			player_score_box = base.get_node_or_null("TurnEconomy/PlayerUI/Scorebox")
 			opponent_score_box = base.get_node_or_null("TurnEconomy/OpponentUI/Scorebox")
@@ -159,40 +149,43 @@ func _ready() -> void:
 						break
 				if not already_connected:
 					pass_button.connect("pressed", Callable(self, "_on_player_pass_pressed"))
-					# print("UIManager: Connected PassButton to _on_player_pass_pressed")
-				
-				# Connect hover signals for InfoScreen commentary
-				pass_button.connect("mouse_entered", Callable(self, "_on_pass_button_hover"))
-				pass_button.connect("mouse_exited", Callable(self, "_on_pass_button_exit"))
+				# Always connect hover signals (handler will check turn)
+				if not pass_button.is_connected("mouse_entered", Callable(self, "_on_pass_button_hover")):
+					pass_button.connect("mouse_entered", Callable(self, "_on_pass_button_hover"))
+				if not pass_button.is_connected("mouse_exited", Callable(self, "_on_pass_button_exit")):
+					pass_button.connect("mouse_exited", Callable(self, "_on_pass_button_exit"))
 			# store for external control
 			self.set("_player_pass_button", pass_button)
 			if pass_button:
 				pass
-				# print("UIManager: stored _player_pass_button ->", pass_button.get_path())
+				# stored player pass button (suppressed)
 			else:
 				pass
-				# print("UIManager: _player_pass_button is null (PassButton not found)")
+				# pass button not found (suppressed)
 
 				# Loading overlay (full panel child)
 				loading_rect = ui_panel.get_node_or_null("Loading")
 				if loading_rect:
 					pass
-					# print("UIManager: found Loading rect at", loading_rect.get_path())
+					# loading rect found (suppressed)
 					# ensure it's initially hidden and use configured opacity
 					loading_rect.visible = false
 					loading_rect.modulate.a = loading_opacity
 				else:
 					pass
-					# print("UIManager: Loading rect not found under UIPanel")
+					# loading rect not found (suppressed)
 
 		# Keep backwards-compatible names used elsewhere
 		player_score_label = player_score_box
 		opponent_score_label = opponent_score_box
 
+	# Disable UI panel inputs initially
+	ui_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
 ## Called when the player's Pass button is pressed
 func _on_player_pass_pressed() -> void:
 	pass
-	# print("UIManager: Player Pass pressed")
+	# player pass pressed (suppressed)
 	# Notify TurnManager via GameManager if available
 	var gm = get_node_or_null("/root/GameManager")
 	var tm: Node = null
@@ -204,18 +197,30 @@ func _on_player_pass_pressed() -> void:
 		tm.pass_current_player()
 	else:
 		pass
-		# print("UIManager: TurnManager not found to handle pass")
+		# TurnManager not found to handle pass (suppressed)
 
 func _on_pass_button_hover() -> void:
+	var game_manager = get_node_or_null("/root/GameManager")
+	if not game_manager or game_manager.current_game_state != game_manager.GameState.IN_ROUND:
+		return
+	# Only show hover message during player's turn
+	var turn_manager = get_node_or_null("/root/main/Managers/TurnManager")
+	if not turn_manager or not turn_manager.has_method("get_is_player_turn") or not turn_manager.get_is_player_turn():
+		return
 	var info_manager = get_node_or_null("/root/main/Managers/InfoScreenManager")
 	if info_manager and info_manager.has_method("show_pass_button_hover"):
 		# Get the current actions left value from the label
 		var actions_left = 0
 		if player_actions_left_label and player_actions_left_label.text != "":
 			actions_left = int(player_actions_left_label.text)
+		# show hover message for pass button
+		# actions_left captured
 		info_manager.show_pass_button_hover(actions_left)
 
 func _on_pass_button_exit() -> void:
+	var game_manager = get_node_or_null("/root/GameManager")
+	if not game_manager or game_manager.current_game_state != game_manager.GameState.IN_ROUND:
+		return
 	var info_manager = get_node_or_null("/root/main/Managers/InfoScreenManager")
 	if info_manager and info_manager.has_method("clear"):
 		info_manager.clear()
@@ -226,20 +231,20 @@ func _on_pass_button_exit() -> void:
 func show_loading() -> void:
 	if not loading_rect:
 		pass
-		# print("UIManager: show_loading called but loading_rect is null")
+		# show_loading called but loading_rect is null (suppressed)
 		return
 	loading_rect.visible = true
 	loading_rect.modulate.a = loading_opacity
-	# print("UIManager: show_loading -> visible")
+	# loading visible (suppressed)
 
 func hide_loading() -> void:
 	if not loading_rect:
 		pass
-		# print("UIManager: hide_loading called but loading_rect is null")
+		# hide_loading called but loading_rect is null (suppressed)
 		return
 	loading_rect.visible = false
 	loading_rect.modulate.a = loading_opacity
-	# print("UIManager: hide_loading -> hidden")
+	# loading hidden (suppressed)
 
 ## Allow other managers to enable/disable the player's pass button
 func set_pass_button_enabled(enabled: bool) -> void:
@@ -248,7 +253,7 @@ func set_pass_button_enabled(enabled: bool) -> void:
 		pb = self.get("_player_pass_button")
 	if pb:
 		pb.disabled = not enabled
-		# print("UIManager: set_pass_button_enabled -> (stored) ", enabled)
+		# pass button enabled/disabled (suppressed)
 		return
 	# Try fallback lookup
 	var base = ui_panel.get_node_or_null("PanelBG/VBoxContainer") if ui_panel else null
@@ -256,9 +261,9 @@ func set_pass_button_enabled(enabled: bool) -> void:
 		var pass_button = base.get_node_or_null("TurnEconomy/PlayerUI/PassButton")
 		if pass_button:
 			pass_button.disabled = not enabled
-			# print("UIManager: set_pass_button_enabled -> (fallback) ", enabled)
+			# pass button fallback set (suppressed)
 			return
-	# print("UIManager: set_pass_button_enabled -> no pass button found to set to", enabled)
+	# no pass button found fallback (suppressed)
 
 
 
@@ -267,15 +272,15 @@ func set_pass_button_enabled(enabled: bool) -> void:
 # Shows sequential messages: "Game Start" -> "Round X" -> "Your Turn"
 func show_game_start_sequence(round_number: int, is_player_turn: bool) -> void:
 	pass
-	# print("UIManager: show_game_start_sequence called.")
+	# show_game_start_sequence called (suppressed)
 	if not game_state_overlay:
 		pass
-		# print("UIManager: game_state_overlay is null.")
+		# game_state_overlay is null (suppressed)
 		return
 	var label = game_state_overlay.get_node_or_null("CenterContainer/GameState")
 	if not label:
 		pass
-		# print("UIManager: label is null.")
+		# label is null (suppressed)
 		return
 
 	game_state_overlay.visible = true
@@ -286,7 +291,7 @@ func show_game_start_sequence(round_number: int, is_player_turn: bool) -> void:
 		"label": label,
 		"texts": ["Game Start", "Round %d" % round_number, turn_text]
 	}
-	# print("UIManager: _start_sequence_data initialized: ", _start_sequence_data)
+	# start sequence data initialized (suppressed)
 
 	_advance_start_sequence()
 
@@ -335,7 +340,7 @@ func _set_label_text(label: Label, text: String) -> void:
 
 func _on_start_sequence_complete() -> void:
 	pass
-	# print("UIManager: _on_start_sequence_complete called.")
+	# on_start_sequence_complete called (suppressed)
 	if game_state_overlay:
 		game_state_overlay.visible = false
 	emit_signal("start_sequence_finished")
@@ -346,9 +351,9 @@ var _start_sequence_data: Dictionary
 func _advance_start_sequence() -> void:
 	if not _start_sequence_data:
 		pass
-		# print("UIManager: _advance_start_sequence called but _start_sequence_data is null.")
+		# start sequence data null (suppressed)
 		return
-		
+	
 	var label: Label = _start_sequence_data.get("label")
 	var texts: Array = _start_sequence_data.get("texts")
 
@@ -360,7 +365,7 @@ func _advance_start_sequence() -> void:
 	_start_sequence_data["texts"] = texts
 	if label:
 		label.text = next_text
-		# print("UIManager: Advancing sequence, showing text: ", next_text)
+		# advancing start sequence (suppressed)
 
 	var tween = create_tween()
 	tween.tween_property(label, "modulate:a", 1.0, 0.35).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
@@ -374,12 +379,12 @@ func _advance_start_sequence() -> void:
 # Updates the persistent round # display in the UI Panel
 func update_round_display(round_number: int) -> void:
 	pass
-	# print("UIManager: update_round_display called with", round_number)
+	# update round display called (suppressed)
 	if round_label:
 		round_label.text = str(round_number)
 	else:
 		pass
-		# print("UI Manager: Round label not found, displaying: Round %d" % round_number)
+		# round label not found fallback (suppressed)
 
 
 # Updates the total scores in the UI Panel
@@ -406,7 +411,7 @@ func update_scores(scores: Dictionary) -> void:
 		if od2: od2.text = str(p2_digits[1])
 		if od3: od3.text = str(p2_digits[2])
 
-	# print("UI Manager: Updating scores. Player: %d, Opponent: %d" % [p1_score, p2_score])
+	# score update completed (suppressed)
 
 
 func _format_digits(value: int, length: int) -> Array:
@@ -431,20 +436,110 @@ func set_active_player(_is_player_turn: bool) -> void:
 
 	if opponent_actions_panel:
 		opponent_actions_panel.modulate.a = target_alpha
+	
+	# Connect/disconnect pass button hover signals based on whose turn it is
+	var pass_button = self.get("_player_pass_button")
+	# set_active_player called; updating pass button connections
+	if pass_button:
+		set_pass_button_enabled(_is_player_turn)
+		# Disconnect existing hover connections if any
+		if pass_button.is_connected("mouse_entered", Callable(self, "_on_pass_button_hover")):
+			pass_button.disconnect("mouse_entered", Callable(self, "_on_pass_button_hover"))
+		if pass_button.is_connected("mouse_exited", Callable(self, "_on_pass_button_exit")):
+			pass_button.disconnect("mouse_exited", Callable(self, "_on_pass_button_exit"))
+		
+		# Reconnect hover signals only if it's the player's turn
+		if _is_player_turn:
+			pass_button.connect("mouse_entered", Callable(self, "_on_pass_button_hover"))
+			pass_button.connect("mouse_exited", Callable(self, "_on_pass_button_exit"))
 
 
 # === END ROUND TRAY METHODS ===
 
 # Shows the end round screen with card reveal animation
-func show_end_round_screen(_winner: int, _player_total: int, _opponent_total: int) -> void:
+func show_end_round_screen(_winner: int, _player_total: int, _opponent_total: int, player_cards_info: Array = [], opponent_cards_info: Array = []) -> void:
 	if not end_round_tray:
 		return
-	
+
+	# Labels on the tray
+	var player_lbl = end_round_tray.get_node_or_null("PlayerHandTotal")
+	var opp_lbl = end_round_tray.get_node_or_null("OpponentHandTotal")
+	var round_summary = end_round_tray.get_node_or_null("RoundSummary")
+
+	# Initialize displayed totals to 0 for the animated count-up
+	if player_lbl and player_lbl is Label:
+		player_lbl.text = "0"
+	if opp_lbl and opp_lbl is Label:
+		opp_lbl.text = "0"
+
+	# Show the tray and overlay
 	end_round_tray.visible = true
-	
-	# TODO: Implement card-by-card reveal animation
-	# TODO: Show "You Win!" / "You've Lost..." / "It's a Tie" message
-	# print("End Round: Winner=%d, Player=%d, Opponent=%d" % [winner, player_total, opponent_total])
+	if end_round_tray.has_method("grab_focus"):
+		end_round_tray.grab_focus()
+	if not end_round_tray.is_connected("gui_input", Callable(self, "_on_end_round_tray_input")):
+		end_round_tray.connect("gui_input", Callable(self, "_on_end_round_tray_input"))
+	if game_state_overlay:
+		game_state_overlay.visible = true
+
+	# Helper: find discard pile and its children (cards were moved there already)
+	var discard_node = null
+	var main_node = get_node_or_null("/root/main")
+	if main_node and "discard_pile_node" in main_node:
+		discard_node = main_node.discard_pile_node
+	if not discard_node:
+		discard_node = get_tree().get_root().find_node("DiscardPile", true, false)
+
+	# Animate player cards one-by-one: flash the card in the discard pile and increment the displayed total
+	var displayed_player_total = 0
+	for card_info in player_cards_info:
+		var val = int(card_info.get("value", 0))
+		# Find a matching card in discard pile (by name) if possible
+		var found_card = null
+		if discard_node:
+			for child in discard_node.get_children():
+				if child and "card_name" in child and child.card_name == card_info.get("name", ""):
+					found_card = child
+					break
+
+		# Flash the card visually if found
+		if is_instance_valid(found_card):
+			_flash_card(found_card)
+
+		# Increment displayed total with a small animation delay
+		displayed_player_total += val
+		if player_lbl and player_lbl is Label:
+			player_lbl.text = str(displayed_player_total)
+		await get_tree().create_timer(0.28).timeout
+
+	# Animate opponent cards
+	var displayed_opponent_total = 0
+	for card_info in opponent_cards_info:
+		var val2 = int(card_info.get("value", 0))
+		var found_card2 = null
+		if discard_node:
+			for child2 in discard_node.get_children():
+				if child2 and "card_name" in child2 and child2.card_name == card_info.get("name", ""):
+					found_card2 = child2
+					break
+		if is_instance_valid(found_card2):
+			_flash_card(found_card2)
+		displayed_opponent_total += val2
+		if opp_lbl and opp_lbl is Label:
+			opp_lbl.text = str(displayed_opponent_total)
+		await get_tree().create_timer(0.28).timeout
+
+	# After counting finishes, declare a winner message
+	if round_summary and round_summary is Label:
+		var msg = "It's a Tie..."
+		if _winner == -1:
+			msg = "It's a Tie..."
+		elif _winner == 0:
+			msg = "You Win the Round!"
+		else:
+			msg = "Opponent Wins the Round"
+		round_summary.text = msg
+
+	# Done — now UI awaits dismissal by the player (click/key) via existing handler
 
 
 # === END GAME TRAY METHODS ===
@@ -457,4 +552,53 @@ func show_game_over_screen(_winner: int, _final_score: int) -> void:
 	end_game_tray.visible = true
 	
 	# TODO: Update labels in end_game_tray with winner info
-	# print("Game Over: Winner=%d, Score=%d" % [winner, final_score])
+	# game over display (suppressed)
+
+
+# Enable inputs when the first card is drawn
+func on_first_card_drawn() -> void:
+	ui_panel.mouse_filter = Control.MOUSE_FILTER_PASS
+
+
+func _on_end_round_tray_input(ev) -> void:
+	# Close on any mouse click or key press
+	if ev and (ev is InputEventMouseButton and ev.pressed or ev is InputEventKey and ev.pressed):
+		_close_end_round_tray()
+
+func _flash_card(card: Node) -> void:
+	# Simple flash: scale up slightly and flash modulate on the Visuals node if present
+	if not is_instance_valid(card):
+		return
+	if not card.has_node("Visuals"):
+		return
+	var visuals = card.get_node("Visuals")
+	var orig_scale = visuals.scale
+	var t = create_tween()
+	t.tween_property(visuals, "scale", orig_scale * 1.18, 0.12).set_ease(Tween.EASE_OUT)
+	t.parallel().tween_property(visuals, "modulate", Color(1.8, 1.8, 1.8, 1.0), 0.08)
+	t.chain().tween_property(visuals, "scale", orig_scale, 0.18).set_ease(Tween.EASE_IN_OUT)
+	t.parallel().tween_property(visuals, "modulate", Color(1, 1, 1, 1), 0.18)
+
+
+func _close_end_round_tray() -> void:
+	if end_round_tray:
+		if end_round_tray.is_connected("gui_input", Callable(self, "_on_end_round_tray_input")):
+			end_round_tray.disconnect("gui_input", Callable(self, "_on_end_round_tray_input"))
+		end_round_tray.visible = false
+	if game_state_overlay:
+		game_state_overlay.visible = false
+	emit_signal("end_round_closed")
+
+
+func await_end_round_close() -> void:
+	# Helper for code that wants to wait until the tray is dismissed.
+	if not end_round_tray or not end_round_tray.visible:
+		return
+	await self.end_round_closed
+
+# Added logic to suppress hover-triggered commentary when it's not the player's turn
+func suppress_hover_commentary(is_player_turn: bool) -> void:
+	var info_manager = get_node_or_null("/root/main/Managers/InfoScreenManager")
+	if info_manager:
+		if not is_player_turn:
+			info_manager.clear()

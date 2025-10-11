@@ -1,5 +1,7 @@
 extends Node
 
+signal typing_finished
+
 @export var typing_speed: float = 0.03
 
 @onready var info_screen_label: Label = null
@@ -22,25 +24,22 @@ var used_phrases: Dictionary = {
 	"opponent_bad_move": [],   # Opponent plays low/takes high
 	"opponent_mid_move": [],    # Opponent plays mid/takes mid
 	"opponent_good_move": [],   # Opponent plays high/takes low
+	"opponent_pass": [],
 	"game_loading": []          # Initial game setup messages
 }
 
 func _ready():
 	await get_tree().process_frame
 	_find_info_screen()
-	print("[InfoScreenManager] Label found: ", info_screen_label != null)
 	if info_screen_label:
 		info_screen_label.text = default_text
-		print("[InfoScreenManager] Ready and initialized")
 		# Show a random loading message when the game starts
 		show_game_loading_message()
 
 func _find_info_screen():
 	var ui_panel = get_node_or_null("../../FrontLayerUI/UIPanel")
-	print("[InfoScreenManager] UI Panel found: ", ui_panel != null)
 	if ui_panel:
 		var info_screen = ui_panel.get_node_or_null("PanelBG/VBoxContainer/InformationScreen/Label")
-		print("[InfoScreenManager] Info screen label path check: ", info_screen != null)
 		if info_screen:
 			info_screen_label = info_screen
 
@@ -54,9 +53,9 @@ func set_text(new_text: String) -> void:
 	if new_text == "":
 		info_screen_label.text = ""
 		is_typing = false
+		emit_signal("typing_finished")
 		return
 	
-	print("[InfoScreenManager] Using typing_speed: ", typing_speed)
 	is_typing = true
 	info_screen_label.text = ""
 	
@@ -70,7 +69,10 @@ func set_text(new_text: String) -> void:
 		)
 		typing_tween.tween_interval(typing_speed)
 	
-	typing_tween.tween_callback(func(): is_typing = false)
+	typing_tween.tween_callback(func(): 
+		is_typing = false
+		emit_signal("typing_finished")
+	)
 
 func get_text() -> String:
 	if info_screen_label:
@@ -82,6 +84,9 @@ func clear() -> void:
 	current_mode = "idle"
 
 func show_card_info(card_name: String) -> void:
+	var turn_manager = get_node_or_null("/root/main/Managers/TurnManager")
+	if not turn_manager or not turn_manager.get_is_player_turn():
+		return
 	if current_mode == "tutorial":
 		return
 	
@@ -131,6 +136,32 @@ func show_game_end_commentary(winner: String, player_total: int, opponent_total:
 	set_text(commentary)
 	current_mode = "game_end"
 
+func display_round_winner(winner: int, score: int) -> void:
+	"""
+	Called by GameManager when a single player wins the round.
+	winner: integer (GameManager.Player enum value where 0 is player one / the human)
+	score: the points awarded to the winner (lower total in this game's rules)
+	"""
+	if current_mode == "tutorial":
+		return
+
+	# Best-effort mapping: Player one (0) is the human player; anything else is opponent.
+	var winner_text = "You" if winner == 0 else "Opponent"
+	var message = "%s won the round with %d points!" % [winner_text, score]
+	set_text(message)
+	current_mode = "round_end"
+
+func display_round_tie(score: int) -> void:
+	"""
+	Called by GameManager when the round ends in a tie. Both players receive their points.
+	"""
+	if current_mode == "tutorial":
+		return
+
+	var message = "It's a tie! Both players receive %d points." % score
+	set_text(message)
+	current_mode = "round_end"
+
 func show_tutorial_message(message: String) -> void:
 	set_text(message)
 	current_mode = "tutorial"
@@ -140,10 +171,16 @@ func exit_tutorial_mode() -> void:
 		clear()
 
 func test_typing(message: String = "Hello! This is a test message!") -> void:
-	print("[InfoScreenManager] test_typing called with: ", message)
 	set_text(message)
 
 func show_pass_button_hover(actions_left: int = 0) -> void:
+	var game_manager = get_node_or_null("/root/GameManager")
+	if not game_manager or game_manager.current_game_state != game_manager.GameState.IN_ROUND:
+		return
+
+	var turn_manager = get_node_or_null("/root/main/Managers/TurnManager")
+	if not turn_manager or not turn_manager.get_is_player_turn():
+		return
 	if current_mode == "tutorial":
 		return
 	
@@ -231,6 +268,28 @@ func show_opponent_move_commentary(move_quality: String) -> void:
 	set_text(random_phrase)
 	current_mode = "opponent_move"
 
+func show_opponent_pass_commentary() -> void:
+	var phrases = [
+		"Oh. They're confident.",
+		"Talk about PASSive aggressive. Bold.",
+		"They think they've already won. You should do something about that.",
+		"Happy with that hand, are they? We'll see about that.",
+		"Poker face. It's a bluff... wait, does that work in this game?",
+		"I smell fear. Or my circuits are overheating again.",
+		"That looked like a 'I have no good cards' pass if I've ever seen one.",
+		"Nothing to play? Or just pretending they have nothing to play?",
+		"hmmm...",
+		"That...can be a good thing...sometimes",
+		"What are they planning...?",
+		"My probability analysis is inconclusive. You're on your own, kid.",
+		"An interesting tactical decision.",
+		"I have a bad feeling about this."
+	]
+
+	var random_phrase = _get_non_repeating_phrase(phrases, "opponent_pass")
+	set_text(random_phrase)
+	current_mode = "opponent_pass"
+
 func show_game_loading_message() -> void:
 	"""
 	Show a random loading/setup message at the start of the game.
@@ -238,7 +297,7 @@ func show_game_loading_message() -> void:
 	var phrases = [
 		"Hi there, let me get things set up.",
 		"No that's okay, don't help - I'll set it up (¬_¬).",
-		"Shuffling......................and done",
+		"Shuffling......................and done! Oop, actually 1 sec...",
 		"mmmm, give me a moment.",
 		"Waking up my circuits... one moment please.",
 		"Alright, cards are here, table is... clean enough. Let's do this.",
@@ -323,20 +382,28 @@ func _get_random_commentary(params: Dictionary) -> String:
 	return _get_non_repeating_phrase(phrases, category_key)
 
 func _get_non_repeating_phrase(phrases: Array, category_key: String) -> String:
+	# Ensure a tracking list exists for this category
+	if not used_phrases.has(category_key):
+		used_phrases[category_key] = []
+
 	# If we've used all phrases, reset the tracking for this category
 	if used_phrases[category_key].size() >= phrases.size():
 		used_phrases[category_key].clear()
-	
+
 	# Find available phrases (ones we haven't used yet)
 	var available_phrases = []
 	for phrase in phrases:
 		if phrase not in used_phrases[category_key]:
 			available_phrases.append(phrase)
-	
+
+	# If something went wrong and available is empty, fallback to full list
+	if available_phrases.size() == 0:
+		available_phrases = phrases.duplicate()
+
 	# Pick a random one from available phrases
 	var selected_phrase = available_phrases[randi() % available_phrases.size()]
-	
+
 	# Mark it as used
 	used_phrases[category_key].append(selected_phrase)
-	
+
 	return selected_phrase

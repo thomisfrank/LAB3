@@ -61,11 +61,10 @@ func show_background_by_name(requested_name: String) -> bool:
 			if child.name == requested_name:
 				found_texture = child
 			child.visible = false # Hide all textures initially
+
 	if found_texture:
 		found_texture.visible = true
-		if debug_logging:
-			pass
-			# print("[Backgrounds] Set background to: %s" % requested_name)
+		# debug log suppressed
 		return true
 	else:
 		push_warning("[Backgrounds] Background with name '%s' not found." % requested_name)
@@ -107,8 +106,8 @@ func _find_and_apply():
 	if bg_node:
 		_choose_random_background(bg_node)
 	elif debug_logging:
+		# debug log suppressed
 		pass
-		# print("[Backgrounds] Could not find a 'backgrounds' node to apply settings to.")
 
 
 # Chooses and applies a random background texture from the available candidates.
@@ -146,8 +145,8 @@ func _choose_random_background(bg_node: Node) -> void:
 	_apply_random_effects(picked)
 
 	if debug_logging or Engine.is_editor_hint():
+		# debug log suppressed
 		pass
-		# print("[Backgrounds] Picked background: %s" % picked.name)
 
 
 # Applies randomized shader and flip effects to the chosen background.

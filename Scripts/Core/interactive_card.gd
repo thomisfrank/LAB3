@@ -99,7 +99,6 @@ var snap_back_tween: Tween
 
 func _ready() -> void:
 	pass
-	# print("card ready")
 	# Create or ensure a CollisionArea exists in the main scene tree so physics Area overlap works
 	# (cards' visuals live in a SubViewport, so put the Area2D on this InteractiveCard node instead)
 	if not has_node("CollisionArea"):
@@ -168,8 +167,8 @@ func set_card_data(data_name: String) -> void:
 	if card_viewport and card_viewport.has_method("set_card_data"):
 		card_viewport.set_card_data(data_name)
 	else:
-		if card_viewport:
-			print("[InteractiveCard] card_viewport has set_card_data? ", card_viewport.has_method("set_card_data"))
+		# card_viewport missing set_card_data method; ignore silently
+		pass
 	
 	# Check if signals are connected
 	if display_container:
@@ -181,13 +180,10 @@ func set_card_data(data_name: String) -> void:
 			_mf_name = "PASS"
 		elif mf == Control.MOUSE_FILTER_IGNORE:
 			_mf_name = "IGNORE"
-		# print("has display_container, mouse_filter=", mf, "(", _mf_name, ")")
-		# Debug: print rect and whether signals are connected
+		# display_container mouse filter info (suppressed)
 		if display_container.has_method("get_rect"):
 			var _r = display_container.get_rect()
-			# print("display_container rect:", _r)
-		# print("connected mouse_entered:", display_container.is_connected("mouse_entered", Callable(self, "_on_display_mouse_entered")))
-		# print("connected mouse_exited:", display_container.is_connected("mouse_exited", Callable(self, "_on_display_mouse_exited")))
+		# debug info available but suppressed in production
 
 func _process(delta: float) -> void:
 	# Run all our per-frame logic
@@ -202,12 +198,11 @@ func _process(delta: float) -> void:
 		debug_frame_counter += 1
 		if debug_frame_counter >= debug_print_interval:
 			debug_frame_counter = 0
-			# print a single-line debug if needed:
-			# print("[Card %d] Pos:%s Home:%s Rot:%.2f HomeRot:%.2f Dragging:%s" % [card_index, global_position, home_position, rad_to_deg(rotation), rad_to_deg(home_rotation), str(is_dragging)])
+			# position debug suppressed
 	if display_container and display_container.get_rect().has_point(display_container.get_local_mouse_position()):
 		if Input.is_action_just_pressed("click"):
 			pass
-			# print("click inside card rect")
+			# click inside card rect (suppressed)
 
 func flip_card():
 	var tween = create_tween().set_ease(flip_ease).set_trans(flip_trans)
@@ -309,6 +304,9 @@ func _on_display_mouse_exited() -> void:
 # --- Helper Functions ---
 
 func drag_logic() -> void:
+	var turn_manager = get_node_or_null("/root/main/Managers/TurnManager")
+	if not turn_manager or not turn_manager.get_is_player_turn():
+		return
 	# Only allow dragging for player cards
 	if is_mouse_over and Input.is_action_just_pressed("click") and is_player_card:
 		is_dragging = true
@@ -381,7 +379,7 @@ func set_home_position(pos: Vector2, rot: float) -> void:
 	home_rotation = rot
 
 func snap_back_to_original_position() -> void:
-	# print("[Card %d] snap_back called: Current=%v, Home=%v" % [card_index, global_position, home_position])
+	# snap_back called (debug suppressed)
 	# Kill any existing snap back tween
 	if snap_back_tween and snap_back_tween.is_running():
 		snap_back_tween.kill()
@@ -556,11 +554,11 @@ func _move_to_discard_pile() -> void:
 			scene_root.add_to_discard_pile(self)
 		else:
 			pass
-			# print("InteractiveCard: card is not valid or not in tree when trying to move to discard pile")
+			# interactive card invalid or not in tree; freeing
 			queue_free()
 	else:
 		pass
-		# print("InteractiveCard: main.add_to_discard_pile not found; freeing card")
+		# main handler not found for discard; freeing card
 		queue_free()
 
 

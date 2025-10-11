@@ -65,7 +65,15 @@ inactive_player_opacity = 0.2
 action_pop_scale = 1.05
 action_pop_rotation_degrees = 8.0
 action_pop_grow_time = 0.02
-end_of_actions_delay = 0.35
+end_of_actions_delay = 1.0
+pass_particle_amount = 60
+pass_particle_lifetime = 0.5
+pass_particle_speed = 100.0
+pass_particle_spread_degrees = 1000.0
+pass_particle_gravity = Vector3(50, 98, 30)
+pass_particle_scale_min = 1.0
+pass_particle_scale_max = 5.0
+pass_particle_color = Color(0.15294118, 0.68235296, 0.3764706, 1)
 
 [node name="UIManager" type="Node" parent="Managers"]
 script = ExtResource("1_uim")
@@ -74,13 +82,13 @@ loading_opacity = 100.0
 [node name="AIManager" type="Node" parent="Managers"]
 script = ExtResource("5_h1bgf")
 move_offset = Vector2(350, 150)
-lift_duration = 1.0
-rotate_duration = 1.0
-move_duration = 1.0
+lift_duration = 0.5
+rotate_duration = 0.5
+move_duration = 0.8
 
 [node name="InfoScreenManager" type="Node" parent="Managers"]
 script = ExtResource("6_b3802")
-typing_speed = 0.02
+typing_speed = 0.035
 
 [node name="BackLayerUI" type="CanvasLayer" parent="."]
 layer = -10
@@ -117,6 +125,9 @@ script = ExtResource("1_bo1nx")
 card_scene = ExtResource("1_jjgbg")
 draw_base_duration = 0.4
 draw_stagger = 0.08
+flicker_steps = 16
+flicker_step_time = 0.02
+flicker_blank_chance = 0.01
 
 [node name="HandSlots" type="Node2D" parent="Parallax"]
 
@@ -155,11 +166,11 @@ position = Vector2(1483, 115)
 rotation = -0.15
 
 [node name="Deck" parent="Parallax" instance=ExtResource("6_6bp64")]
-position = Vector2(1605, 670)
+position = Vector2(1649, 641)
 scale = Vector2(0.4, 0.4)
 
 [node name="discardPile" parent="Parallax" instance=ExtResource("7_hptm8")]
-position = Vector2(1732, 276)
+position = Vector2(1776, 247)
 position_offset_range_pixels = Vector2(5, 5)
 flash_brightness = 4.0
 wiggle_offset = Vector2(12, 2)

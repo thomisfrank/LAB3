@@ -28,7 +28,9 @@ shader_parameter/inset = 0.0
 
 [node name="InteractiveCard" type="Node2D"]
 script = ExtResource("1_pgduw")
-max_tilt_angle = 6.0
+max_tilt_angle = 1.0
+hover_scale = 1.2
+hover_rotation_straighten = 1.0
 drag_smoothing = 5.0
 drag_lerp_speed = 200.0
 shadow_follow_speed = 0.0
