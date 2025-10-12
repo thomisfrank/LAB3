@@ -1,4 +1,21 @@
 extends Node2D
+signal card_was_clicked(card_node)
+
+
+func _gui_input(event: InputEvent) -> void:
+	# We only care about the moment the left mouse button is pressed down.
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.is_pressed():
+		print("[InteractiveCard] Emitting card_was_clicked for:", self, "name=", card_name, "path=", get_path())
+		emit_signal("card_was_clicked", self)
+
+		# If we are NOT in selection mode, do we check for dragging.
+		# Note: We need a way to check this without the GameManager.
+		# For now, let's assume if it's draggable and a player card, it can be dragged.
+		if is_draggable and is_player_card:
+			is_dragging = true
+			# ... (the rest of your normal drag-and-drop code)
+
+signal moved_to_discard
 
 # --- Node References & Exports ---
 @onready var visuals = $Visuals
@@ -7,6 +24,8 @@ extends Node2D
 @onready var card_viewport = $Visuals/CardViewport/SubViewport/Card
 @onready var card_back = $Visuals/CardViewport/SubViewport/Card/CardBack
 @onready var card_face = $Visuals/CardViewport/SubViewport/Card/CardFace
+var lock_icon: Node = null
+@onready var SelectOutline = $Visuals/SelectOutline # Path to ColorRect outline
 
 
 # --- Card Appearance ---
@@ -15,6 +34,7 @@ var card_name: String = ""  # Set by card_manager when instantiating
 
 # --- Card Ownership ---
 @export var is_player_card: bool = true  # If true, player can drag this card; if false, only hover effects
+@export var is_draggable: bool = true  # If true, this card can be dragged by the player
 
 # --- Interactions ---
 @export_category("Interactions")
@@ -63,11 +83,13 @@ var card_name: String = ""  # Set by card_manager when instantiating
 # --- State Variables ---
 var is_mouse_over: bool = false
 var is_dragging: bool = false
+var is_locked: bool = false
 var hover_tween: Tween
 var prev_global_position: Vector2 = Vector2.ZERO
 var drag_offset: Vector2 = Vector2.ZERO
 var wobble_time: float = 0.0 # NEW: For the oscillator
 var card_index: int = 0  # Index of this card in the hand (for wave effect)
+var card_data: Dictionary = {}
 
 # Hover state tracking
 var original_z_index: int = 0
@@ -130,6 +152,18 @@ func _ready() -> void:
 	# Also add the InteractiveCard itself to the group in case other code expects it
 	add_to_group("cards")
 
+	# Resolve lock indicator: try under Visuals first, then fall back to root-level 'LockedState'
+	lock_icon = $Visuals.get_node_or_null("LockedState")
+	if not lock_icon:
+		lock_icon = get_node_or_null("LockedState")
+	# Ensure lock visual starts hidden if present
+	if lock_icon and lock_icon is CanvasItem:
+		(lock_icon as CanvasItem).visible = false
+
+	# Ensure the peek select outline is hidden initially
+	if SelectOutline and SelectOutline is CanvasItem:
+		SelectOutline.hide()
+
 	prev_global_position = global_position
 	# Store original z_index for hover restoration
 	original_z_index = z_index
@@ -169,6 +203,19 @@ func set_card_data(data_name: String) -> void:
 	else:
 		# card_viewport missing set_card_data method; ignore silently
 		pass
+
+	# Populate a local `card_data` dictionary so other systems can read card properties
+	# Try canonical autoload path first, then scene lookup
+	var card_data_loader = get_node_or_null("/root/CardDataLoader")
+	if not card_data_loader:
+		var current_scene = get_tree().get_current_scene()
+		if current_scene and current_scene.has_method("find_node"):
+			card_data_loader = current_scene.find_node("CardDataLoader", true, false)
+	# If we have a loader, query the data; otherwise set an empty dictionary to avoid nil checks elsewhere
+	if card_data_loader and card_data_loader.has_method("get_card_data"):
+		card_data = card_data_loader.get_card_data(data_name)
+	else:
+		card_data = {}
 	
 	# Check if signals are connected
 	if display_container:
@@ -201,7 +248,7 @@ func _process(delta: float) -> void:
 			# position debug suppressed
 	if display_container and display_container.get_rect().has_point(display_container.get_local_mouse_position()):
 		if Input.is_action_just_pressed("click"):
-			pass
+			_on_card_clicked()
 			# click inside card rect (suppressed)
 
 func flip_card():
@@ -274,6 +321,11 @@ func _on_display_mouse_entered() -> void:
 		hover_tween.tween_property(self, "hover_y_offset", hover_lift_y, hover_flourish_duration)
 		hover_tween.tween_property(self, "rotation", target_rotation, hover_flourish_duration)
 
+	# Debug: log when mouse enters during selection mode
+	var gm_debug = get_node_or_null("/root/main/Managers/GameManager")
+	if gm_debug and gm_debug.has_method("is_in_selection_mode") and gm_debug.is_in_selection_mode:
+		print_debug("InteractiveCard: hover enter during selection mode ->", card_name, "node=", self.get_path())
+
 func _on_display_mouse_exited() -> void:
 	is_mouse_over = false
 	
@@ -301,14 +353,24 @@ func _on_display_mouse_exited() -> void:
 		hover_tween.tween_property(self, "hover_y_offset", 0.0, hover_flourish_duration * 0.8)
 		hover_tween.tween_property(self, "rotation", home_rotation, hover_flourish_duration * 0.8)
 
+	# Debug: log mouse exit during selection mode
+	var gm_debug2 = get_node_or_null("/root/main/Managers/GameManager")
+	if gm_debug2 and gm_debug2.has_method("is_in_selection_mode") and gm_debug2.is_in_selection_mode:
+		print_debug("InteractiveCard: hover exit during selection mode ->", card_name, "node=", self.get_path())
+
 # --- Helper Functions ---
 
 func drag_logic() -> void:
+	# Prevent dragging if the game is in selection mode.
+	var gm = get_node_or_null("/root/main/Managers/GameManager")
+	if gm and gm.has_method("is_in_selection_mode") and gm.is_in_selection_mode:
+		return
+
 	var turn_manager = get_node_or_null("/root/main/Managers/TurnManager")
 	if not turn_manager or not turn_manager.get_is_player_turn():
 		return
 	# Only allow dragging for player cards
-	if is_mouse_over and Input.is_action_just_pressed("click") and is_player_card:
+	if is_mouse_over and Input.is_action_just_pressed("click") and is_player_card and _can_drag():
 		is_dragging = true
 		# Don't update home position here - it's set by CardManager
 		
@@ -332,6 +394,11 @@ func drag_logic() -> void:
 		# Check if we released over a drop zone
 		_check_drop_zones()
 
+	# If card is locked while dragging, cancel drag and snap back
+	if is_locked and is_dragging:
+		is_dragging = false
+		snap_back_to_original_position()
+
 	if is_dragging:
 		# Target is mouse position minus offset, adjusted back for visual center
 		var visual_center_target = get_global_mouse_position() - drag_offset
@@ -351,6 +418,8 @@ func _check_drop_zones() -> void:
 			if zone.contains_global_position(global_position):
 				# Trigger the drop
 				if zone.has_method("on_card_dropped"):
+					# Diagnostics: print the node being handed to the drop zone so we can trace invalid calls
+					print("[InteractiveCard] handing off to drop zone:", "name=", name, "path=", get_path(), "valid=", is_instance_valid(self), "has_card_data=", ("card_data" in self and self.card_data))
 					# We're already inside the zone, don't let it snap our position.
 					zone.on_card_dropped(self, false, true)
 				return
@@ -377,6 +446,81 @@ func set_home_position(pos: Vector2, rot: float) -> void:
 	"""Call this to set the card's designated home position in the hand"""
 	home_position = pos
 	home_rotation = rot
+
+
+func set_locked(locked_state: bool) -> void:
+	"""Locks or unlocks the card, toggling its visual and draggability."""
+	is_locked = locked_state
+	# Ensure we have a reference to the lock icon (handle calls before _ready)
+	if not lock_icon:
+		lock_icon = $Visuals.get_node_or_null("LockedState")
+		if not lock_icon:
+			lock_icon = get_node_or_null("LockedState")
+
+	# Toggle visibility and make sure it's drawn above everything if locking
+	if lock_icon and lock_icon is CanvasItem:
+		if is_locked:
+			(lock_icon as CanvasItem).visible = true
+			# Bring to front and ensure full opacity
+			if (lock_icon as CanvasItem).has_method("raise"):
+				(lock_icon as CanvasItem).raise()
+			# Use a high z_index within Godot's allowed range to ensure visibility in awkward hierarchies
+			(lock_icon as CanvasItem).z_index = 4096
+			(lock_icon as CanvasItem).modulate = Color(1,1,1,1)
+		else:
+			(lock_icon as CanvasItem).visible = false
+
+
+func set_peek_hover_enabled(is_enabled: bool) -> void:
+	if not SelectOutline:
+		return
+	# Connect/disconnect signals to show the outline on mouse hover
+	if is_enabled:
+		# Guard: display_container should expose mouse_entered/mouse_exited signals
+		if display_container:
+			var enter_callable = Callable(SelectOutline, "show")
+			var exit_callable = Callable(SelectOutline, "hide")
+			if not display_container.is_connected("mouse_entered", enter_callable):
+				display_container.connect("mouse_entered", enter_callable)
+			if not display_container.is_connected("mouse_exited", exit_callable):
+				display_container.connect("mouse_exited", exit_callable)
+			# Also connect gui_input so clicks inside subviewports reliably register during selection mode
+			var gui_callable = Callable(self, "_on_display_gui_input")
+			if not display_container.is_connected("gui_input", gui_callable):
+				display_container.connect("gui_input", gui_callable)
+	else:
+		if display_container:
+			var enter_callable = Callable(SelectOutline, "show")
+			var exit_callable = Callable(SelectOutline, "hide")
+			if display_container.is_connected("mouse_entered", enter_callable):
+				display_container.disconnect("mouse_entered", enter_callable)
+			if display_container.is_connected("mouse_exited", exit_callable):
+				display_container.disconnect("mouse_exited", exit_callable)
+			# Disconnect gui_input when selection mode ends
+			var gui_callable2 = Callable(self, "_on_display_gui_input")
+			if display_container.is_connected("gui_input", gui_callable2):
+				display_container.disconnect("gui_input", gui_callable2)
+		SelectOutline.hide()
+
+	# Prevent dragging if the card is locked
+	if is_locked:
+		is_dragging = false
+		if display_container:
+			display_container.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	else:
+		if display_container:
+			display_container.mouse_filter = Control.MOUSE_FILTER_PASS
+
+
+func _can_drag() -> bool:
+	# Early-out if locked
+	if is_locked:
+		return false
+	# Only player cards can be dragged
+	if not is_player_card:
+		return false
+	# Additional drag conditions can be added here (e.g., not during animations)
+	return true
 
 func snap_back_to_original_position() -> void:
 	# snap_back called (debug suppressed)
@@ -493,6 +637,35 @@ func _on_flip_pressed() -> void:
 	flip_card()
 
 
+func _on_card_clicked() -> void:
+	# Called when the player clicks the card's visible area.
+	# If the GameManager is in selection mode, route the click to it.
+	var gm = get_node_or_null("/root/main/Managers/GameManager")
+	if not gm:
+		return
+
+	# Debug: report click and selection-mode state
+	if gm and gm.has_method("is_in_selection_mode") and gm.is_in_selection_mode:
+		print_debug("InteractiveCard: clicked while in selection mode ->", card_name, "path=", self.get_path())
+
+	# Let GameManager handle selection resolution; it will ignore invalid clicks.
+	if gm.has_method("resolve_selection"):
+		gm.resolve_selection(self)
+		# Prevent starting drag on selection clicks by clearing any drag start state
+		is_dragging = false
+
+
+func _on_display_gui_input(event: InputEvent) -> void:
+	# Handle clicks that happen inside the SubViewport's area. This allows opponent
+	# cards (which may be inside subviewports) to receive clicks during selection mode.
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		print("[InteractiveCard] gui_input: Mouse click detected on card:", card_name, "path=", self.get_path())
+		# Emit the generic click signal and let the GameManager decide how to handle it.
+		# This ensures that clicks during selection mode behave consistently with
+		# other clicks and that any logic connected to `card_was_clicked` is triggered.
+		emit_signal("card_was_clicked", self)
+
+
 # Called by DropZone to trigger the disintegration effect on this card.
 func apply_disintegration(disintegration_shader: Shader, _start_progress: float = 0.0, target_progress: float = 1.0, duration: float = 1.5, ease_type: int = Tween.EASE_IN, trans_type: int = Tween.TRANS_SINE, shader_pixel_amount: int = 50, shader_edge_width: float = 0.04, shader_edge_color: Color = Color(1.5,1.5,1.5,1.0)) -> void:
 	# Ensure we have a material we can modify on the display container (SubViewportContainer).
@@ -531,7 +704,7 @@ func apply_disintegration(disintegration_shader: Shader, _start_progress: float 
 	tween.tween_property(mat, "shader_parameter/progress", target_progress, duration).set_ease(ease_type).set_trans(trans_type)
 	tween.tween_callback(func():
 		# After shader tween completes, either play a 'digital_decay' AnimationPlayer animation
-		# and wait for its completion, or immediately add this card to the discard pile.
+		# and wait for its completion, or immediately destroy this card.
 		if has_node("AnimationPlayer"):
 			var ap = $AnimationPlayer
 			if ap and ap.has_animation("digital_decay"):
@@ -540,28 +713,19 @@ func apply_disintegration(disintegration_shader: Shader, _start_progress: float 
 					ap.animation_finished.connect(cb)
 				ap.play("digital_decay")
 				return
-		# Fallback: directly move to discard pile if main provides the API
-		_move_to_discard_pile()
+		# Fallback: directly destroy the card
+		_destroy_after_disintegration()
 	)
 
 
-func _move_to_discard_pile() -> void:
-	"""Helper to move this card to the discard pile via the main scene."""
-	var scene_root = get_tree().get_current_scene()
-	if scene_root and scene_root.has_method("add_to_discard_pile"):
-		# Important: card must still be in the tree when add_to_discard_pile is called
-		if is_instance_valid(self) and is_inside_tree():
-			scene_root.add_to_discard_pile(self)
-		else:
-			pass
-			# interactive card invalid or not in tree; freeing
-			queue_free()
-	else:
-		pass
-		# main handler not found for discard; freeing card
+
+# Helper to destroy the card after disintegration
+func _destroy_after_disintegration() -> void:
+	if is_instance_valid(self) and is_inside_tree():
+		emit_signal("moved_to_discard")
 		queue_free()
 
 
 func _on_animation_player_animation_finished(anim_name: String) -> void:
 	if anim_name == "digital_decay":
-		_move_to_discard_pile()
+		_destroy_after_disintegration()

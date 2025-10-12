@@ -11,7 +11,50 @@ var card_manager: Node = null
 
 
 func _ready() -> void:
-	game_manager = get_node_or_null("/root/GameManager")
+	# Robust GameManager lookup (support autoload or scene location)
+	var gm: Node = null
+	gm = get_node_or_null("/root/GameManager")
+	if not gm:
+		gm = get_node_or_null("/root/main/Managers/GameManager")
+	if not gm:
+		var manager_container = get_parent()
+		if manager_container:
+			gm = manager_container.get_node_or_null("GameManager")
+	if not gm:
+		var current_scene = get_tree().get_current_scene()
+		if current_scene:
+			gm = current_scene.find_node("GameManager", true, false)
+
+	if not gm:
+		# Defer a retry so initialization order doesn't break things
+		push_warning("AIManager: GameManager not found during _ready; deferring lookup.")
+		call_deferred("_deferred_gm_lookup")
+		return
+
+	game_manager = gm
+	if game_manager and game_manager.has_method("register_manager"):
+		game_manager.register_manager("AIManager", self)
+
+
+func _deferred_gm_lookup() -> void:
+	var gm: Node = null
+	gm = get_node_or_null("/root/GameManager")
+	if not gm:
+		gm = get_node_or_null("/root/main/Managers/GameManager")
+	if not gm:
+		var manager_container = get_parent()
+		if manager_container:
+			gm = manager_container.get_node_or_null("GameManager")
+	if not gm:
+		var current_scene = get_tree().get_current_scene()
+		if current_scene:
+			gm = current_scene.find_node("GameManager", true, false)
+
+	if not gm:
+		push_error("AIManager: GameManager not found after deferred lookup; AI disabled.")
+		return
+
+	game_manager = gm
 	if game_manager and game_manager.has_method("register_manager"):
 		game_manager.register_manager("AIManager", self)
 
@@ -23,6 +66,8 @@ func _resolve_card_manager() -> void:
 		card_manager = get_node_or_null("/root/main/Parallax/CardManager")
 	if not card_manager:
 		card_manager = get_node_or_null("/root/main/Managers/CardManager")
+	if not card_manager:
+		push_error("AIManager: CardManager not found at known locations")
 
 
 func on_ai_turn() -> void:

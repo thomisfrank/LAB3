@@ -1,10 +1,11 @@
 {
 	"name": "Swap_4",
 	"suit": "Swap",
+	"effect_type": "swap",
 	"value": "4",
 	"icon_path": "Swap.png",
 	"description": "Swap this card with one from your opponent's hand",
-	"color_a": [0.153, 0.682, 0.376, 1.0],
-	"color_b": [0.678, 0.847, 0.212, 1.0],
-	"color_c": [0.945, 0.769, 0.059, 1.0]
+	"color_a": [0.945, 0.769, 0.059, 1.0],
+	"color_b": [0.762, 0.744, 0.171, 1.0],
+	"color_c": [0.153, 0.682, 0.376, 1.0]
 }

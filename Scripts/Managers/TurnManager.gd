@@ -18,6 +18,8 @@ var opponent_had_turn: bool = false
 # Delay after final pass before ending round
 @export_group("Round Timing")
 @export var end_round_delay_after_pass: float = 1.5
+@export var play_effect_delay: float = 0.0 # delay to simulate a card effect / play (was hard-coded 3s)
+@export var post_phase_delay: float = 1.0  # delay after discard/message before advancing turn (was hard-coded 1s)
 
 # --- Action Tracking ---
 @export_group("Turn Settings")
@@ -94,66 +96,40 @@ func _execute_scheduled_transition(id: int) -> void:
 @export var pass_particle_color: Color = Color.WHITE
 
 func _ready() -> void:
-	pass
-	# print("TurnManager: _ready called")
-	
-	# Try to get GameManager via autoload (singleton) first
-	game_manager = get_node_or_null("/root/GameManager")
+	# Robust GameManager lookup: try common locations (autoload path, scene path, parent),
+	# then fall back to a scene-wide find. If still not found, defer and retry once.
+	# This avoids hard failing when registration order varies between autoloads and scene nodes.
+	var gm: Node = null
 
-	# If not an autoload, try parent container lookup
-	if not game_manager:
+	# 1) Autoload singleton (most reliable when GameManager is an autoload)
+	gm = get_node_or_null("/root/GameManager")
+	# 2) Main scene Managers container (common when GameManager is a child of the main scene)
+	if not gm:
+		gm = get_node_or_null("/root/main/Managers/GameManager")
+	# 3) Parent container lookup (if this TurnManager is a sibling under a Managers node)
+	if not gm:
 		var manager_container = get_parent()
 		if manager_container:
-			game_manager = manager_container.get_node_or_null("GameManager")
+			gm = manager_container.get_node_or_null("GameManager")
+	# 4) Scene-wide search as a last resort
+	if not gm:
+		var current_scene = get_tree().get_current_scene()
+		if current_scene:
+			gm = current_scene.find_node("GameManager", true, false)
 
-	# Try to obtain other managers from GameManager
-	if game_manager and game_manager.has_method("get_manager"):
-		ui_manager = game_manager.get_manager("UIManager")
-		card_manager = game_manager.get_manager("CardManager")
-		# print("TurnManager: ui_manager from GameManager =", ui_manager)
-		# print("TurnManager: card_manager from GameManager =", card_manager)
+	if not gm:
+		# Defer one retry to give the scene/autoload ordering a chance to resolve
+		push_warning("TurnManager: GameManager not found during _ready; deferring lookup and retrying shortly.")
+		call_deferred("_deferred_gm_lookup")
+		return
 
-	# If we have a GameManager autoload, register ourselves
-	if game_manager and game_manager.has_method("register_manager"):
-		pass
-		# print("TurnManager: registering with GameManager")
-		game_manager.register_manager("TurnManager", self)
-	else:
-		pass
-		# print("TurnManager: GameManager not found on register step or no register method")
-
-	# Ensure we have critical references
-	if not game_manager:
-		push_error("TurnManager: GameManager not found (autoload or parent).")
-	if not ui_manager:
-		pass
-		# print("TurnManager: UIManager not found (will try to fetch later).")
-	if not card_manager:
-		pass
-		# print("TurnManager: CardManager not found (will try to fetch later).")
-
-	# Immediately clear action icon fills on ready to avoid any initial green flash
-	if not fill_icons_on_start:
-		# Try cached UIManager panels first
-		if ui_manager:
-			if ui_manager.player_actions_panel:
-				_force_set_action_icons_fill(ui_manager.player_actions_panel, 0.0)
-			if ui_manager.opponent_actions_panel:
-				_force_set_action_icons_fill(ui_manager.opponent_actions_panel, 0.0)
-		else:
-			# Fallback to known scene paths
-			var base_path = "/root/main/FrontLayerUI/UIPanel/PanelBG/VBoxContainer/TurnEconomy/"
-			var ppanel = get_node_or_null(base_path + "PlayerUI")
-			var oppanel = get_node_or_null(base_path + "OpponentUI")
-			if ppanel:
-				_force_set_action_icons_fill(ppanel, 0.0)
-			if oppanel:
-				_force_set_action_icons_fill(oppanel, 0.0)
+	# Store found GameManager and finish initialization
+	game_manager = gm
+	_finish_initialization()
 
 ## Called by RoundManager or GameManager to start turn management
 func start_turn_management(starting_player: int) -> void:
-	pass
-	# print("TurnManager: Starting turn management with player", starting_player)
+	# Called by RoundManager or GameManager to start turn management
 	current_player = starting_player
 	# Consider PLAYER_ONE (0) as the local player
 	is_player_turn = (current_player == 0)
@@ -170,21 +146,64 @@ func start_turn_management(starting_player: int) -> void:
 		player_actions_remaining = 0
 		opponent_actions_remaining = actions_per_turn
 
-	# print("TurnManager: initial state -> current_player:", current_player, "is_player_turn:", is_player_turn, "player_actions:", player_actions_remaining, "opponent_actions:", opponent_actions_remaining)
-
+	# Update UI and action displays
 	_update_ui_opacity()
 	_update_action_ui()
 
-	# Optionally force the icons to appear unfilled at launch while keeping counts intact
+
+## Deferred lookup helper for GameManager (called if initial lookup failed)
+func _deferred_gm_lookup() -> void:
+	# Try the same resolution again but after the scene has had a chance to finish loading
+	var gm: Node = null
+	gm = get_node_or_null("/root/GameManager")
+	if not gm:
+		gm = get_node_or_null("/root/main/Managers/GameManager")
+	if not gm:
+		var manager_container = get_parent()
+		if manager_container:
+			gm = manager_container.get_node_or_null("GameManager")
+	if not gm:
+		var current_scene = get_tree().get_current_scene()
+		if current_scene:
+			gm = current_scene.find_node("GameManager", true, false)
+
+	if not gm:
+		push_error("TurnManager: GameManager not found after deferred lookup. Certain features will be disabled.")
+		return
+
+	game_manager = gm
+	_finish_initialization()
+
+
+func _finish_initialization() -> void:
+	# Try to obtain other managers from GameManager
+	if game_manager and game_manager.has_method("get_manager"):
+		ui_manager = game_manager.get_manager("UIManager")
+		card_manager = game_manager.get_manager("CardManager")
+
+	# If we have a GameManager with a register method, register ourselves
+	if game_manager and game_manager.has_method("register_manager"):
+		game_manager.register_manager("TurnManager", self)
+
+	# Log warnings if critical refs are still missing (non-fatal)
+	if not game_manager:
+		push_error("TurnManager: GameManager not found (autoload or parent).")
+	if not ui_manager:
+		# UIManager may register later; it's non-fatal
+		push_warning("TurnManager: UIManager not resolved on init; will attempt later lookups.")
+	# Resolve CardManager proactively (try several common locations)
+	_resolve_card_manager()
+
+	# Immediately clear action icon fills on ready to avoid any initial green flash
 	if not fill_icons_on_start:
-		# Try using UIManager cached panels first
+		# Try cached UIManager panels first
 		if ui_manager:
 			if ui_manager.player_actions_panel:
 				_force_set_action_icons_fill(ui_manager.player_actions_panel, 0.0)
 			if ui_manager.opponent_actions_panel:
 				_force_set_action_icons_fill(ui_manager.opponent_actions_panel, 0.0)
 		else:
-			# Fallback to scene paths
+			# Fallback to known scene paths
 			var base_path = "/root/main/FrontLayerUI/UIPanel/PanelBG/VBoxContainer/TurnEconomy/"
 			var ppanel = get_node_or_null(base_path + "PlayerUI")
 			var oppanel = get_node_or_null(base_path + "OpponentUI")
@@ -212,6 +231,35 @@ func _force_set_action_icons_fill(panel: Node, target_opacity: float) -> void:
 		if mat and mat is ShaderMaterial:
 			# Directly set shader parameter to avoid any tween animation
 			mat.set_shader_parameter("fill_alpha", target_opacity)
+
+
+## --- Late-resolution helpers ---
+func _resolve_card_manager() -> void:
+	# Try registration via GameManager first
+	if game_manager and game_manager.has_method("get_manager"):
+		card_manager = game_manager.get_manager("CardManager")
+
+	# Fallback scene lookups
+	if not card_manager:
+		card_manager = get_node_or_null("/root/main/Parallax/CardManager")
+	if not card_manager:
+		card_manager = get_node_or_null("/root/main/Managers/CardManager")
+
+	# If still not found, schedule a deferred retry to reduce warning spam
+	if not card_manager:
+		call_deferred("_deferred_card_manager_lookup")
+
+
+func _deferred_card_manager_lookup() -> void:
+	# One more attempt after the scene has fully initialized
+	if game_manager and game_manager.has_method("get_manager"):
+		card_manager = game_manager.get_manager("CardManager")
+	if not card_manager:
+		card_manager = get_node_or_null("/root/main/Parallax/CardManager")
+	if not card_manager:
+		card_manager = get_node_or_null("/root/main/Managers/CardManager")
+	if not card_manager:
+		push_warning("TurnManager: CardManager still not found after deferred lookup; some features may be disabled.")
 
 ## Switch to the next player's turn
 func next_turn() -> void:
@@ -537,7 +585,10 @@ func pass_current_player() -> void:
 	_update_action_ui()
 
 	if player_had_turn and opponent_had_turn:
-		var gm = get_node_or_null("/root/GameManager")
+		var gm = get_node_or_null("/root/main/Managers/GameManager")
+		if not gm:
+			push_error("TurnManager: GameManager not found at /root/main/Managers/GameManager")
+			return
 		if gm and gm.has_method("set_game_state"):
 			await get_tree().create_timer(end_round_delay_after_pass).timeout
 			gm.set_game_state(gm.GameState.ROUND_END)
@@ -766,3 +817,54 @@ func _handle_opponent_action() -> void:
 		# Perform the opponent's first action (e.g., play a card or other logic)
 		opponent_actions_remaining -= 1
 		_update_action_ui()
+
+		# Simulate opponent playing a card effect: show a message while the effect
+		# plays for 3s, then begin the discard sequence. After discard completes
+		# and/or the message period finishes, wait 1s and then end the AI turn.
+		var info_manager = get_node_or_null("/root/main/Managers/InfoScreenManager")
+		if info_manager and info_manager.has_method("set_text"):
+			info_manager.set_text("Opponent is playing...")
+
+		# Simulated effect duration (configurable)
+		if play_effect_delay > 0.0:
+			await get_tree().create_timer(play_effect_delay).timeout
+
+		# Request the engine to mark the opponent's phase complete. The TurnManager
+		# should not unilaterally set the game state to ROUND_END; instead we mark
+		# the opponent as finished and let the GameManager/RoundManager decide
+		# whether the round should end.
+		complete_opponent_phase()
+
+		# Wait for discard_hands to complete if RoundManager exposes it (best-effort)
+		var round_mgr = null
+		var gm = get_node_or_null("/root/main/Managers/GameManager")
+		if not gm:
+			push_error("TurnManager: GameManager not found at /root/main/Managers/GameManager")
+			return
+		if gm and gm.has_method("get_manager"):
+			round_mgr = gm.get_manager("RoundManager")
+		if not round_mgr:
+			round_mgr = get_node_or_null("/root/main/Managers/RoundManager")
+		if round_mgr and round_mgr.has_method("discard_hands"):
+			# If discard is already in progress this will await its completion
+			await round_mgr.discard_hands()
+
+		# Wait an extra delay (configurable) after discard/message before ending the AI turn
+		if post_phase_delay > 0.0:
+			await get_tree().create_timer(post_phase_delay).timeout
+
+		# End AI turn by advancing to the next turn (player's turn)
+		next_turn()
+
+
+## Mark opponent phase complete and ask the GameManager to end the round if both sides have acted.
+func complete_opponent_phase() -> void:
+	opponent_had_turn = true
+	# If both had their turns, request a round end; otherwise no action here.
+	if player_had_turn and opponent_had_turn:
+		var gm = get_node_or_null("/root/main/Managers/GameManager")
+		if not gm:
+			push_error("TurnManager: GameManager not found at /root/main/Managers/GameManager")
+			return
+		if gm and gm.has_method("set_game_state"):
+			gm.set_game_state(gm.GameState.ROUND_END)

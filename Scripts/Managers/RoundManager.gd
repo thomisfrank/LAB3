@@ -51,13 +51,31 @@ func _ready() -> void:
 	_calculate_hand_positions()
 	
 	# Try to get GameManager via autoload (singleton) first
-	game_manager = get_node_or_null("/root/GameManager")
+	# Robust lookup for GameManager: try common locations and fall back to a deferred retry
+	var gm: Node = null
 
-	# If not an autoload, try parent container lookup
-	if not game_manager:
+	# 1) Autoload singleton path
+	gm = get_node_or_null("/root/GameManager")
+	# 2) Main scene Managers container (legacy path)
+	if not gm:
+		gm = get_node_or_null("/root/main/Managers/GameManager")
+	# 3) Parent container lookup
+	if not gm:
 		var manager_container = get_parent()
 		if manager_container:
-			game_manager = manager_container.get_node_or_null("GameManager")
+			gm = manager_container.get_node_or_null("GameManager")
+	# 4) Scene-wide search
+	if not gm:
+		var current_scene = get_tree().get_current_scene()
+		if current_scene:
+			gm = current_scene.find_node("GameManager", true, false)
+
+	if not gm:
+		push_warning("RoundManager: GameManager not found during _ready; deferring lookup and retrying shortly.")
+		call_deferred("_deferred_gm_lookup")
+		return
+
+	game_manager = gm
 
 	# Try to obtain CardManager, UIManager, and TurnManager from GameManager
 	if game_manager and game_manager.has_method("get_manager"):
@@ -69,10 +87,9 @@ func _ready() -> void:
 	# Fallback to scene lookups if still null
 	if not card_manager:
 		card_manager = get_node_or_null("/root/main/Parallax/CardManager")
-		# fallback card_manager lookup
 	if not ui_manager:
+		# UI may be registered later; keep trying later
 		pass
-		# print("RoundManager: WARNING - ui_manager is null after get_manager, this shouldn't happen!")
 
 	# If we have a GameManager autoload, register ourselves so GameManager can reference us
 	if game_manager and game_manager.has_method("register_manager"):
@@ -94,6 +111,37 @@ func _ready() -> void:
 	if not turn_manager:
 		pass
 		# print("RoundManager: TurnManager not found (will try to fetch later).")
+
+
+func _deferred_gm_lookup() -> void:
+	var gm: Node = null
+	gm = get_node_or_null("/root/GameManager")
+	if not gm:
+		gm = get_node_or_null("/root/main/Managers/GameManager")
+	if not gm:
+		var manager_container = get_parent()
+		if manager_container:
+			gm = manager_container.get_node_or_null("GameManager")
+	if not gm:
+		var current_scene = get_tree().get_current_scene()
+		if current_scene:
+			gm = current_scene.find_node("GameManager", true, false)
+
+	if not gm:
+		push_error("RoundManager: GameManager not found after deferred lookup. Cannot start rounds.")
+		return
+
+	game_manager = gm
+
+	# Try re-fetching managers now that GameManager is available
+	if game_manager and game_manager.has_method("get_manager"):
+		card_manager = game_manager.get_manager("CardManager")
+		ui_manager = game_manager.get_manager("UIManager")
+		turn_manager = game_manager.get_manager("TurnManager")
+
+	# If autoload supports register_manager, register ourselves
+	if game_manager and game_manager.has_method("register_manager"):
+		game_manager.register_manager("RoundManager", self)
 
 
 # NEW: This function calculates hand positions dynamically.
@@ -127,8 +175,10 @@ func _calculate_hand_positions() -> void:
 
 # Called by the GameManager to begin a new round.
 func start_new_round(starter: int) -> void:
-	# ... (rest of the file is unchanged) ...
-	# start_new_round called
+	# Add a safeguard to prevent multiple calls during the same round
+	if current_round_number > 0:
+		push_warning("RoundManager: start_new_round called multiple times for the same round.")
+		return
 	
 	# Re-fetch managers from GameManager in case they weren't ready during _ready()
 	if game_manager and game_manager.has_method("get_manager"):
@@ -264,25 +314,53 @@ func _draw_opponent_delayed(count: int, start_pos: Vector2, hand_center: Vector2
 
 # Calculates the total value of all cards in a player's hand.
 func calculate_player_score(player_id: int) -> int:
-	if not card_manager: return 9999
+	# Include both the cards currently in the player's hand AND any of their cards
+	# that have already been moved to the discard pile. This ensures score
+	# calculation matches what the end-round UI displays (which combines
+	# hand + discard entries).
+	if not card_manager:
+		return 9999
 
 	var is_player = (player_id == 0) # Corresponds to GameManager.Player.PLAYER_ONE
+	var combined_nodes: Array = []
+
+	# 1) Add all current hand cards
 	var hand_nodes: Array = card_manager.get_hand_cards(is_player)
-	
+	for hn in hand_nodes:
+		combined_nodes.append(hn)
+
+	# 2) Try to find the discard pile and include any of the player's cards there
+	var discard_node = null
+	var main_node = get_node_or_null("/root/main")
+	if main_node and "discard_pile_node" in main_node:
+		discard_node = main_node.discard_pile_node
+	if not discard_node:
+		var current_scene = get_tree().get_current_scene()
+		if current_scene:
+			discard_node = current_scene.find_node("DiscardPile", true, false)
+	if discard_node:
+		for child in discard_node.get_children():
+			# only include cards that belong to the player we're calculating for
+			if child and "is_player_card" in child and child.is_player_card == is_player:
+				combined_nodes.append(child)
+
+	# 3) Sum values using the CardDataLoader
 	var card_data_loader = get_node_or_null("/root/CardDataLoader")
 	if not card_data_loader:
 		push_error("CardDataLoader not found!")
 		return 9999
 
 	var total_value: int = 0
-	for card_node in hand_nodes:
+	for card_node in combined_nodes:
+		if not is_instance_valid(card_node):
+			continue
 		if "card_name" in card_node:
 			var card_name = card_node.card_name
 			if card_name:
 				var card_data = card_data_loader.get_card_data(card_name)
 				if card_data and card_data.has("value"):
-					# Ensure value is treated as an integer
 					total_value += int(card_data["value"])
+
 	return total_value
 
 

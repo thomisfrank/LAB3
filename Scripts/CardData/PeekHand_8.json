@@ -1,9 +1,10 @@
 {
 	"name": "PeekHand_8",
 	"suit": "PeekHand",
+	"effect_type": "peek_hand",
 	"value": "8",
 	"icon_path": "PeekHand.png",
-	"description": "Look at a card in your opponent's hand",
+	"description": "Look at a card in your opponent's hand, then choose whether to swap with it.",
 	"color_a": [0.945, 0.769, 0.059, 1.0],
 	"color_b": [0.906, 0.298, 0.235, 1.0],
 	"color_c": [0.906, 0.616, 0.235, 1.0]

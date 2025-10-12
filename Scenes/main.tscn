@@ -1,7 +1,8 @@
-[gd_scene load_steps=20 format=3 uid="uid://k78r5mnfr86l"]
+[gd_scene load_steps=35 format=3 uid="uid://k78r5mnfr86l"]
 
 [ext_resource type="Script" uid="uid://dt01fmi0ud6n0" path="res://Scripts/Core/main.gd" id="1_21xkr"]
 [ext_resource type="Script" uid="uid://diupc0dagbyfv" path="res://Scripts/Managers/card_manager.gd" id="1_bo1nx"]
+[ext_resource type="Script" uid="uid://opr1ice0kjdk" path="res://Scripts/Managers/GameManager.gd" id="1_gmgd"]
 [ext_resource type="PackedScene" uid="uid://hicesjantdjt" path="res://Scenes/Core/interactiveCard.tscn" id="1_jjgbg"]
 [ext_resource type="Script" uid="uid://bg34rp06cjr8r" path="res://Scripts/Managers/RoundManager.gd" id="1_rm"]
 [ext_resource type="Script" uid="uid://cgaq32kgv6rlc" path="res://Scripts/Managers/TurnManager.gd" id="1_tm"]
@@ -12,12 +13,18 @@
 [ext_resource type="Script" uid="uid://bghl75ky5hfgf" path="res://Scripts/Managers/ai_manager.gd" id="5_h1bgf"]
 [ext_resource type="PackedScene" uid="uid://gdkre2xkksra" path="res://Scenes/Core/deck.tscn" id="6_6bp64"]
 [ext_resource type="Script" uid="uid://bayld4regrxic" path="res://Scripts/Managers/InfoScreenManager.gd" id="6_b3802"]
+[ext_resource type="Script" uid="uid://eb6xrlbug6il" path="res://Scripts/Managers/EffectsManager.gd" id="7_fevyy"]
 [ext_resource type="PackedScene" uid="uid://djx8niab6ivv2" path="res://Scenes/Core/discard_pile.tscn" id="7_hptm8"]
 [ext_resource type="PackedScene" uid="uid://gu4ayccbc2mf" path="res://Scenes/Core/drop_zone.tscn" id="7_ynf5e"]
 [ext_resource type="PackedScene" uid="uid://l3ep0uhlvt53" path="res://Scenes/UI/game_state_overlay.tscn" id="9_d1ilt"]
 [ext_resource type="PackedScene" uid="uid://d22ua8nju6in8" path="res://Scenes/UI/end_round_tray.tscn" id="9_fdnlq"]
 [ext_resource type="PackedScene" uid="uid://bd7r3kr8kyerm" path="res://Scenes/UI/ui_panel.tscn" id="10_d1ilt"]
 [ext_resource type="PackedScene" uid="uid://b2lihann318mb" path="res://Scenes/UI/end_game_tray.tscn" id="12_jkdf5"]
+[ext_resource type="Texture2D" uid="uid://r4mhdhnpayc0" path="res://Assets/UI/Button.png" id="21_u50mg"]
+[ext_resource type="Texture2D" uid="uid://bn3yv5sw5wafi" path="res://Assets/UI/ButtonPressed.png" id="22_cbgmd"]
+[ext_resource type="Texture2D" uid="uid://c2slcp3v2jn8k" path="res://Assets/UI/ButtonHover.png" id="23_1w6v2"]
+[ext_resource type="Shader" uid="uid://c82r54bghps0l" path="res://Scripts/Shader/TextJitter.gdshader" id="24_ueoa1"]
+[ext_resource type="FontFile" uid="uid://xsc61ygdt07q" path="res://Assets/fonts/OpenSansPXBold.ttf" id="25_6vcvc"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_jjvhh"]
 shader = ExtResource("3_8gbba")
@@ -43,6 +50,28 @@ shader_parameter/clip_warp = true
 shader_parameter/vignette_intensity = 0.4
 shader_parameter/vignette_opacity = 0.0750000035625
 
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_b3802"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_fevyy"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_hibaj"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_pdsj5"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ee4r6"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_7k868"]
+shader = ExtResource("24_ueoa1")
+shader_parameter/jitter_rate = 8.0
+shader_parameter/jitter_amount = 0.002000000095
+
+[sub_resource type="LabelSettings" id="LabelSettings_hpc6h"]
+font = ExtResource("25_6vcvc")
+font_size = 32
+font_color = Color(0.17254902, 0.24313726, 0.3137255, 1)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_kltya"]
+
 [node name="main" type="Node2D" node_paths=PackedStringArray("discard_pile_node")]
 script = ExtResource("1_21xkr")
 cards_to_draw = 4
@@ -66,18 +95,18 @@ action_pop_scale = 1.05
 action_pop_rotation_degrees = 8.0
 action_pop_grow_time = 0.02
 end_of_actions_delay = 1.0
-pass_particle_amount = 60
 pass_particle_lifetime = 0.5
-pass_particle_speed = 100.0
-pass_particle_spread_degrees = 1000.0
-pass_particle_gravity = Vector3(50, 98, 30)
-pass_particle_scale_min = 1.0
-pass_particle_scale_max = 5.0
-pass_particle_color = Color(0.15294118, 0.68235296, 0.3764706, 1)
+pass_particle_speed = 460.0
+pass_particle_spread_degrees = 5500.0
+pass_particle_gravity = Vector3(100, 98, 30)
+pass_particle_scale_min = 5.0
+pass_particle_scale_max = 15.0
+pass_particle_color = Color(0.1833536, 0.8724435, 0.48207104, 1)
 
 [node name="UIManager" type="Node" parent="Managers"]
 script = ExtResource("1_uim")
 loading_opacity = 100.0
+end_round_step_delay = 1.0
 
 [node name="AIManager" type="Node" parent="Managers"]
 script = ExtResource("5_h1bgf")
@@ -89,6 +118,14 @@ move_duration = 0.8
 [node name="InfoScreenManager" type="Node" parent="Managers"]
 script = ExtResource("6_b3802")
 typing_speed = 0.035
+
+[node name="EffectsManager" type="Node" parent="Managers"]
+script = ExtResource("7_fevyy")
+last_peek_card_z_index = 10000
+
+[node name="Game Manager" type="Node" parent="Managers"]
+script = ExtResource("1_gmgd")
+require_showcase_marker = true
 
 [node name="BackLayerUI" type="CanvasLayer" parent="."]
 layer = -10
@@ -107,7 +144,7 @@ mouse_filter = 2
 script = ExtResource("2_6bp64")
 
 [node name="DropZone" parent="Parallax" instance=ExtResource("7_ynf5e")]
-position = Vector2(1080, 500.00003)
+position = Vector2(1127, 500.00003)
 scale = Vector2(0.7600025, 0.9267921)
 fade_in_alpha = 0.089
 fade_in_duration = 0.197
@@ -136,15 +173,15 @@ position = Vector2(806, 901.99994)
 rotation = -0.5194271
 
 [node name="HandSlot1" type="Node2D" parent="Parallax/HandSlots"]
-position = Vector2(989.00006, 844)
+position = Vector2(979, 844)
 rotation = -0.09155666
 
 [node name="HandSlot2" type="Node2D" parent="Parallax/HandSlots"]
-position = Vector2(1181, 846.9998)
+position = Vector2(1171, 846.9998)
 rotation = 0.16236253
 
 [node name="HandSlot3" type="Node2D" parent="Parallax/HandSlots"]
-position = Vector2(1355, 893)
+position = Vector2(1348.9999, 893)
 rotation = 0.3920921
 
 [node name="OpponentHandSlots" type="Node2D" parent="Parallax"]
@@ -181,6 +218,7 @@ follow_viewport_enabled = true
 
 [node name="EndRoundTray" parent="FrontLayerUI" instance=ExtResource("9_fdnlq")]
 visible = false
+metadata/_edit_vertical_guides_ = [610.0]
 
 [node name="GameStateOverlay" parent="FrontLayerUI" instance=ExtResource("9_d1ilt")]
 visible = false
@@ -210,4 +248,97 @@ mouse_filter = 2
 color = Color(1, 1, 1, 0)
 metadata/_edit_lock_ = true
 
+[node name="InputCatcher" type="CanvasLayer" parent="FrontLayerUI"]
+layer = 15
+
+[node name="Catcher" type="Button" parent="FrontLayerUI/InputCatcher"]
+z_index = 4096
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/normal = SubResource("StyleBoxEmpty_b3802")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_fevyy")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_hibaj")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_pdsj5")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_ee4r6")
+toggle_mode = true
+
+[node name="ShowcaseMarker" type="Marker2D" parent="FrontLayerUI/InputCatcher/Catcher"]
+position = Vector2(1124, 307)
+
+[node name="ShowcaseOptions" type="HBoxContainer" parent="FrontLayerUI/InputCatcher"]
+z_index = 4096
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -51.0
+offset_top = -923.0
+offset_right = 387.0
+offset_bottom = -869.0
+grow_horizontal = 2
+grow_vertical = 0
+alignment = 1
+
+[node name="OptionButton1" type="TextureButton" parent="FrontLayerUI/InputCatcher/ShowcaseOptions"]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+texture_normal = ExtResource("21_u50mg")
+texture_pressed = ExtResource("22_cbgmd")
+texture_hover = ExtResource("23_1w6v2")
+
+[node name="Label" type="Label" parent="FrontLayerUI/InputCatcher/ShowcaseOptions/OptionButton1"]
+texture_filter = 1
+material = SubResource("ShaderMaterial_7k868")
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.285
+anchor_top = 0.16666667
+anchor_right = 0.66
+anchor_bottom = 0.8888889
+offset_top = -2.0
+offset_bottom = -2.0
+text = "Keep"
+label_settings = SubResource("LabelSettings_hpc6h")
+horizontal_alignment = 1
+vertical_alignment = 1
+metadata/_edit_use_anchors_ = true
+
+[node name="HSeparator" type="HSeparator" parent="FrontLayerUI/InputCatcher/ShowcaseOptions"]
+custom_minimum_size = Vector2(30, 0)
+layout_mode = 2
+theme_override_styles/separator = SubResource("StyleBoxEmpty_kltya")
+
+[node name="OptionButton2" type="TextureButton" parent="FrontLayerUI/InputCatcher/ShowcaseOptions"]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+texture_normal = ExtResource("21_u50mg")
+texture_pressed = ExtResource("22_cbgmd")
+texture_hover = ExtResource("23_1w6v2")
+
+[node name="Label" type="Label" parent="FrontLayerUI/InputCatcher/ShowcaseOptions/OptionButton2"]
+texture_filter = 1
+material = SubResource("ShaderMaterial_7k868")
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.285
+anchor_top = 0.1574074
+anchor_right = 0.66
+anchor_bottom = 0.8796296
+offset_top = -2.0
+offset_bottom = -2.0
+text = "REJECT"
+label_settings = SubResource("LabelSettings_hpc6h")
+horizontal_alignment = 1
+vertical_alignment = 1
+metadata/_edit_use_anchors_ = true
+
 [connection signal="area_entered" from="Parallax/DropZone" to="Parallax/DropZone" method="_on_area_entered"]
+[connection signal="pressed" from="FrontLayerUI/InputCatcher/ShowcaseOptions/OptionButton1" to="Managers/UIManager" method="_on_showcase_button_pressed"]
+[connection signal="pressed" from="FrontLayerUI/InputCatcher/ShowcaseOptions/OptionButton2" to="Managers/UIManager" method="_on_showcase_button_pressed"]

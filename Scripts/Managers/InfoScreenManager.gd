@@ -158,7 +158,12 @@ func display_round_tie(score: int) -> void:
 	if current_mode == "tutorial":
 		return
 
-	var message = "It's a tie! Both players receive %d points." % score
+	# On a tie, no points are awarded (score param may be 0 to indicate this)
+	var message: String = ""
+	if score <= 0:
+		message = "It's a tie. No points awarded."
+	else:
+		message = "It's a tie! Both players receive %d points." % score
 	set_text(message)
 	current_mode = "round_end"
 
@@ -174,8 +179,24 @@ func test_typing(message: String = "Hello! This is a test message!") -> void:
 	set_text(message)
 
 func show_pass_button_hover(actions_left: int = 0) -> void:
-	var game_manager = get_node_or_null("/root/GameManager")
-	if not game_manager or game_manager.current_game_state != game_manager.GameState.IN_ROUND:
+	# Robust GameManager lookup: support autoload, scene Managers container, parent, and current scene find
+	var gm: Node = null
+	gm = get_node_or_null("/root/GameManager")
+	if not gm:
+		gm = get_node_or_null("/root/main/Managers/GameManager")
+	if not gm:
+		var manager_container = get_parent()
+		if manager_container:
+			gm = manager_container.get_node_or_null("GameManager")
+	if not gm:
+		var current_scene = get_tree().get_current_scene()
+		if current_scene and current_scene.has_method("find_node"):
+			gm = current_scene.find_node("GameManager", true, false)
+
+	if not gm:
+		# Not critical: InfoScreen should tolerate missing GameManager during early setup
+		return
+	if gm.current_game_state != gm.GameState.IN_ROUND:
 		return
 
 	var turn_manager = get_node_or_null("/root/main/Managers/TurnManager")

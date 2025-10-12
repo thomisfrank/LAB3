@@ -47,7 +47,9 @@ func _initialize_deck():
 	# Try the common autoload path first, then fall back to a global search in the scene tree.
 	var card_data_loader = get_node_or_null("/root/CardDataLoader")
 	if not card_data_loader:
-		card_data_loader = get_tree().get_root().find_node("CardDataLoader", true, false)
+		var current_scene = get_tree().get_current_scene()
+		if current_scene:
+			card_data_loader = current_scene.find_node("CardDataLoader", true, false)
 	
 	if card_data_loader:
 		deck = card_data_loader.get_deck_composition()
@@ -329,6 +331,84 @@ func get_hand_cards(is_player: bool = true) -> Array:
 	return cards
 
 
+func draw_single_card_to_hand(is_player: bool) -> Node2D:
+	"""Draws one card from the deck to the next open hand slot."""
+	if is_deck_depleted():
+		print("Deck is empty, cannot draw.")
+		return null
+
+	# 1. Find the next available hand slot
+	var hand_slots_path = "../HandSlots" if is_player else "../OpponentHandSlots"
+	var hand_slots_root = get_node_or_null(hand_slots_path)
+	if not hand_slots_root:
+		push_error("CardManager: Cannot find hand slots at %s" % hand_slots_path)
+		return null
+
+	var existing_cards_count = get_hand_cards(is_player).size()
+	var all_slots = hand_slots_root.get_children()
+
+	if existing_cards_count >= all_slots.size():
+		# Diagnostic: print counts to help debug races where a played card hasn't been removed yet
+		print("No open hand slots. existing_cards_count=", existing_cards_count, "slots=", all_slots.size())
+		# Optionally list slot names for debugging
+		var slot_names = []
+		for s in all_slots:
+			slot_names.append(str(s.name))
+		print("Hand slots:", slot_names)
+		return null
+
+	var target_slot = all_slots[existing_cards_count]
+
+	# 2. Instantiate and set up the new card
+	var card_instance: Node2D = card_scene.instantiate()
+	# Ensure consistent visual scale for drawn cards (match interactiveCard.tscn scale)
+	card_instance.scale = Vector2(0.4, 0.4)
+	add_child(card_instance)
+
+	# Set card data from the deck
+	if draw_index < deck.size():
+		var card_name = deck[draw_index]
+		card_instance.set_card_data(card_name)
+		draw_index += 1
+		_update_deck_counter()
+
+	card_instance.is_player_card = is_player
+	card_instance.card_index = existing_cards_count
+
+	# 3. Animate the card from the deck to the slot
+	var deck_node = get_node_or_null("/root/main/Parallax/Deck")
+	card_instance.global_position = deck_node.global_position if deck_node else self.global_position
+
+	var tween = create_tween()
+	tween.tween_property(card_instance, "global_position", target_slot.global_position, 0.6).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	tween.parallel().tween_property(card_instance, "rotation", target_slot.rotation, 0.6)
+
+	await tween.finished
+
+	# Set its final home position after the animation
+	if card_instance.has_method("set_home_position"):
+		card_instance.set_home_position(target_slot.global_position, target_slot.rotation)
+
+	return card_instance
+
+
+func instantiate_top_card_for_peek() -> Node2D:
+	"""Creates a temporary instance of the top card of the deck."""
+	if is_deck_depleted():
+		return null
+
+	var card_instance: Node2D = card_scene.instantiate()
+	var card_name = deck[draw_index]
+	if card_instance.has_method("set_card_data"):
+		card_instance.set_card_data(card_name)
+
+	# Mark this card so we know to delete it later
+	card_instance.set_meta("is_temp_peek", true)
+
+	# It's not yet in the scene tree; caller should add it where appropriate
+	return card_instance
+
+
 func is_deck_depleted() -> bool:
 	"""Return true when there are no more cards left to draw from the deck."""
 	if typeof(deck) != TYPE_ARRAY:
@@ -360,7 +440,9 @@ func discard_all_hands() -> void:
 	if main_node and "discard_pile_node" in main_node:
 		discard_node = main_node.discard_pile_node
 	if not discard_node:
-		discard_node = get_tree().get_root().find_node("DiscardPile", true, false)
+		var current_scene = get_tree().get_current_scene()
+		if current_scene:
+			discard_node = current_scene.find_node("DiscardPile", true, false)
 
 	# Target position fallback (center of discard node or the scene center)
 	var target_global_pos = Vector2.ZERO
@@ -477,11 +559,9 @@ func relayout_hand(is_player: bool = true) -> void:
 				if not is_player and child.is_player_card:
 					continue
 			cards.append(child)
-	
-	# found cards to relayout
 
-	# Sort by card_index if available to preserve intended order
-	cards.sort_custom(Callable(self, "_sort_by_card_index"))
+	# Sort: unlocked cards first, then locked cards, each group by card_index
+	cards.sort_custom(Callable(self, "_sort_hand_cards"))
 
 	# Get slot positions for the appropriate hand
 	var slots = _get_hand_slot_positions(is_player)
@@ -499,16 +579,37 @@ func relayout_hand(is_player: bool = true) -> void:
 			card.card_index = i
 		# choose slot (clamp)
 		var slot = slots[i] if i < slots.size() else slots[slots.size() - 1]
+		# Always set home position before tween to ensure snap-back works
+		card.set_home_position(slot["global_pos"], slot["rot"])
 		# tween card to slot
 		var t = create_tween()
 		t.tween_property(card, "global_position", slot["global_pos"], relayout_duration).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
 		t.parallel().tween_property(card, "rotation", slot["rot"], relayout_duration)
-		# set home when tween finishes
+		# set home when tween finishes (redundant but safe)
 		_set_home_after_delay(card, slot["global_pos"], slot["rot"], relayout_duration)
+		# z_index: unlocked cards always above locked, and later cards above earlier
+		if card.has_method("set_locked") and "is_locked" in card:
+			# Unlocked cards get higher z_index
+			card.z_index = 200 + i if not card.is_locked else 100 + i
+		else:
+			card.z_index = 200 + i
 		# small stagger between each card start
 		if relayout_stagger > 0:
-			# wait a tiny bit before starting next card to create a pleasing cascade
 			await get_tree().create_timer(relayout_stagger).timeout
+
+# Custom sort: unlocked cards first, then locked, each by card_index
+func _sort_hand_cards(a, b) -> int:
+	var a_locked = ("is_locked" in a and a.is_locked)
+	var b_locked = ("is_locked" in b and b.is_locked)
+	if a_locked == b_locked:
+		var ai = 0
+		var bi = 0
+		if "card_index" in a:
+			ai = int(a.card_index)
+		if "card_index" in b:
+			bi = int(b.card_index)
+		return ai - bi
+	return int(a_locked) - int(b_locked)
 
 
 func _sort_by_card_index(a, b) -> int:

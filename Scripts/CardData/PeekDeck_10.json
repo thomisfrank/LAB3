@@ -1,9 +1,10 @@
 {
 	"name": "PeekDeck_10",
 	"suit": "PeekDeck",
+	"effect_type": "peek_deck",
 	"value": "10",
 	"icon_path": "PeekDeck.png",
-	"description": "Look at the top 2 cards of the deck",
+	"description": "Look at the top card of the deck, then choose whether to take it.",
 	"color_a": [0.906, 0.298, 0.235, 1.0],
 	"color_b": [1.0, 0.569, 0.525, 1.0],
 	"color_c": [0.412, 0.039, 0.0, 1.0]

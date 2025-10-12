@@ -6,9 +6,9 @@
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_vrutc"]
 shader = ExtResource("1_6nr0s")
-shader_parameter/color1 = Color(0.19607843, 0.16470589, 0.18039216, 1)
+shader_parameter/color1 = Color(0.37578857, 0.324226, 0.3470928, 1)
 shader_parameter/color2 = Color(0.12156863, 0.101960786, 0.105882354, 1)
-shader_parameter/speed = 0.10400000494
+shader_parameter/speed = 0.15600000741
 shader_parameter/zoom = 9.9470004249825
 shader_parameter/distortion = 2.0
 shader_parameter/octaves = 3
@@ -32,7 +32,8 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-metadata/_edit_vertical_guides_ = [610.0]
+metadata/_edit_vertical_guides_ = [695.0, 1587.0, 1352.0, 1512.0]
+metadata/_edit_horizontal_guides_ = [488.0, 289.0]
 
 [node name="Shadow" type="ColorRect" parent="."]
 custom_minimum_size = Vector2(0, 1080)
@@ -82,3 +83,28 @@ material = SubResource("ShaderMaterial_svoei")
 layout_mode = 2
 text = "#"
 label_settings = SubResource("LabelSettings_cw7as")
+horizontal_alignment = 2
+
+[node name="PlayerHandSlot1" type="Node2D" parent="."]
+position = Vector2(700, 451)
+
+[node name="PlayerHandSlot2" type="Node2D" parent="."]
+position = Vector2(910, 451)
+
+[node name="PlayerHandSlot3" type="Node2D" parent="."]
+position = Vector2(700, 650)
+
+[node name="PlayerHandSlot4" type="Node2D" parent="."]
+position = Vector2(908, 650)
+
+[node name="OpponentHandSlot1" type="Node2D" parent="."]
+position = Vector2(1349, 451)
+
+[node name="OpponentHandSlot2" type="Node2D" parent="."]
+position = Vector2(1561, 451)
+
+[node name="OpponentHandSlot3" type="Node2D" parent="."]
+position = Vector2(1350, 650)
+
+[node name="OpponentHandSlot4" type="Node2D" parent="."]
+position = Vector2(1561, 651)

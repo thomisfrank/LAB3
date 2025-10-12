@@ -1,287 +1,172 @@
 extends Node
 
-signal start_sequence_finished
-signal end_round_closed
-signal turn_message_finished
+#region Showcase Options Dynamic Logic
+# -----------------------------------------------------------------------------
+# These variables will store the callbacks for the showcase option buttons
+var _option_button_1_callback = null
+var _option_button_2_callback = null
 
+func show_showcase_options(options: Array):
+	if not is_instance_valid(showcase_options_container): 
+		push_error("UIManager: ShowcaseOptions container not found.")
+		return
+
+	# Disconnect any old signals to prevent them from firing multiple times
+	if is_instance_valid(option_button_1) and option_button_1.is_connected("pressed", _on_showcase_button_pressed):
+		option_button_1.disconnect("pressed", _on_showcase_button_pressed)
+	if is_instance_valid(option_button_2) and option_button_2.is_connected("pressed", _on_showcase_button_pressed):
+		option_button_2.disconnect("pressed", _on_showcase_button_pressed)
+
+	# Configure the buttons based on the options array
+	if not options.is_empty():
+		showcase_options_container.show()
+		if is_instance_valid(catcher_button):
+			catcher_button.hide() # Hide the background catcher
+
+		var opt1 = options[0]
+		var label1 = option_button_1.get_node_or_null("Label")
+		if label1 and label1 is Label:
+			label1.text = opt1.get("label", "Option 1")
+		option_button_1.pressed.connect(_on_showcase_button_pressed.bind(opt1.get("callback")))
+		option_button_1.show()
+
+		if options.size() > 1:
+			var opt2 = options[1]
+			var label2 = option_button_2.get_node_or_null("Label")
+			if label2 and label2 is Label:
+				label2.text = opt2.get("label", "Option 2")
+			option_button_2.pressed.connect(_on_showcase_button_pressed.bind(opt2.get("callback")))
+			option_button_2.show()
+		else:
+			option_button_2.hide()
+	else:
+		hide_showcase_options()
+# -----------------------------------------------------------------------------
+
+## Emitted when the game's start sequence animation finishes.
+signal start_sequence_finished
+## Emitted when the end-of-round tray is closed by the player.
+signal end_round_closed
+## Emitted when the "Your Turn" / "Opponent's Turn" message animation finishes.
+signal turn_message_finished
+## Emitted when a showcase option is selected.
+signal showcase_option_selected(callback)
+
+#region Exports
 @export_group("Loading")
 @export var loading_opacity: float = 0.9
 
 @export_group("Action Panels")
-# Alpha used for the "off" state (panels look dim/transparent at game start)
+## Alpha used for the "off" state (panels look dim/transparent).
 @export var panels_off_alpha: float = 0.03
-# Alpha used for the "on" state (panels become fully visible when cards draw)
+## Alpha used for the "on" state (panels become fully visible).
 @export var panels_on_alpha: float = 1.0
 
-# References to UI elements (set in _ready from the scene tree)
-var game_state_overlay: Node  # GameStateOverlay node
-var end_round_tray: Node       # EndRoundTray node
-var end_game_tray: Node        # EndGameTray node
-var ui_panel: Node             # UIPanel node (if UIManager is NOT attached to it)
+@export_group("End Round Timing")
+@export var end_round_card_scale: float = 0.35
+@export var end_round_step_delay: float = 0.28
+@export var end_round_pop_grow_time: float = 0.12
+@export var end_round_pop_flash_time: float = 0.08
+@export var end_round_pop_settle_time: float = 0.18
+@export var end_round_summary_delay: float = 0.8
+@export var end_round_summary_to_score_delay: float = 1.0
 
-# UI Panel child nodes (for scores, round display, etc.)
-var round_label: Node
-var player_score_label: Node
-var opponent_score_label: Node
-var player_actions_panel: Node
-var opponent_actions_panel: Node
-var player_score_box: Node
-var opponent_score_box: Node
-var player_actions_left_label: Node
-var opponent_actions_left_label: Node
-var loading_rect: Node
+@export_group("End Round Awarding")
+@export var end_round_award_duration: float = 0.9
+@export var end_round_award_step_time: float = 0.04
+#endregion
+
+#region Node References (resolved in _ready)
+# Main UI Panels and Overlays
+@onready var game_state_overlay: Control = get_node_or_null("/root/main/FrontLayerUI/GameStateOverlay")
+@onready var end_round_tray: Control = get_node_or_null("/root/main/FrontLayerUI/EndRoundTray")
+@onready var end_game_tray: Control = get_node_or_null("/root/main/FrontLayerUI/EndGameTray")
+@onready var ui_panel: Control = get_node_or_null("/root/main/FrontLayerUI/UIPanel")
+@onready var loading_rect: ColorRect = get_node_or_null("/root/main/FrontLayerUI/UIPanel/Loading")
+
+# UI Panel Child Nodes
+@onready var round_label: Label = get_node_or_null("/root/main/FrontLayerUI/UIPanel/PanelBG/VBoxContainer/RoundTitle/Round#")
+@onready var player_score_box: Control = get_node_or_null("/root/main/FrontLayerUI/UIPanel/PanelBG/VBoxContainer/TurnEconomy/PlayerUI/Scorebox")
+@onready var opponent_score_box: Control = get_node_or_null("/root/main/FrontLayerUI/UIPanel/PanelBG/VBoxContainer/TurnEconomy/OpponentUI/Scorebox")
+@onready var player_actions_left_label: Label = get_node_or_null("/root/main/FrontLayerUI/UIPanel/PanelBG/VBoxContainer/TurnEconomy/PlayerUI/ActionDisplay/ActionsLeftLabel")
+@onready var opponent_actions_left_label: Label = get_node_or_null("/root/main/FrontLayerUI/UIPanel/PanelBG/VBoxContainer/TurnEconomy/OpponentUI/ActionDisplay/ActionsLeftLabel")
+@onready var player_actions_panel: Control = get_node_or_null("/root/main/FrontLayerUI/UIPanel/PanelBG/VBoxContainer/TurnEconomy/PlayerUI")
+@onready var opponent_actions_panel: Control = get_node_or_null("/root/main/FrontLayerUI/UIPanel/PanelBG/VBoxContainer/TurnEconomy/OpponentUI")
+@onready var player_pass_button: TextureButton = get_node_or_null("/root/main/FrontLayerUI/UIPanel/PanelBG/VBoxContainer/TurnEconomy/PlayerUI/PassButton")
+@onready var showcase_options_container = get_node_or_null("/root/main/FrontLayerUI/InputCatcher/ShowcaseOptions")
+@onready var option_button_1 = get_node_or_null("/root/main/FrontLayerUI/InputCatcher/ShowcaseOptions/OptionButton1")
+@onready var option_button_2 = get_node_or_null("/root/main/FrontLayerUI/InputCatcher/ShowcaseOptions/OptionButton2")
+@onready var catcher_button = get_node_or_null("/root/main/FrontLayerUI/InputCatcher/Catcher")
+#endregion
+
+var active_end_round_snapshots: Array[Node] = []
+var _start_sequence_data: Dictionary = {}
 
 func _ready() -> void:
-	pass
-	# UIManager ready (debug suppressed)
-	# Resolve references whether this script is attached to UIPanel or lives under Managers
-	# If UIManager is attached to UIPanel, prefer local lookups via the node itself
-	if name == "UIPanel":
-		pass
-		# Attached to UIPanel (suppressed)
-		ui_panel = self
-		var front_layer = ui_panel.get_parent()
-		if front_layer:
-			game_state_overlay = front_layer.get_node_or_null("GameStateOverlay")
-			end_round_tray = front_layer.get_node_or_null("EndRoundTray")
-			end_game_tray = front_layer.get_node_or_null("EndGameTray")
-	else:
-		pass
-		# Not attached to UIPanel; resolving UI elements (suppressed)
-		# Try to get main node first
-		var main_node = get_node_or_null("/root/main")
-		if main_node:
-			var front_layer = main_node.get_node_or_null("FrontLayerUI")
-			# front_layer resolved (suppressed)
-			if front_layer:
-				game_state_overlay = front_layer.get_node_or_null("GameStateOverlay")
-				end_round_tray = front_layer.get_node_or_null("EndRoundTray")
-				end_game_tray = front_layer.get_node_or_null("EndGameTray")
-				ui_panel = front_layer.get_node_or_null("UIPanel")
-				# UI elements found (suppressed)
-
-	if not game_state_overlay or not end_round_tray or not end_game_tray or not ui_panel:
-		push_error("UIManager: Could not find one or more UI elements!")
-		if not game_state_overlay:
-			pass
-			# missing game_state_overlay (suppressed)
-		if not end_round_tray:
-			pass
-			# missing end_round_tray (suppressed)
-		if not end_game_tray:
-			pass
-			# missing end_game_tray (suppressed)
-		if not ui_panel:
-			pass
-			# missing ui_panel (suppressed)
-	else:
-		pass
-		# UI elements ready (suppressed)
-		# Extra diagnostics suppressed
-		var fl = ui_panel.get_parent()
-		if fl:
-			pass
-			# front_layer path available (suppressed)
-		else:
-			pass
-			# front_layer path null (suppressed)
-		# Check overlay label presence
-		var overlay_label = game_state_overlay.get_node_or_null("CenterContainer/GameState") if game_state_overlay else null
-		if overlay_label:
-			pass
-			# overlay label found (suppressed)
-		else:
-			pass
-			# overlay label not found (suppressed)
-
-
-	# If GameManager is autoloaded or present in the scene, register this UIManager so GameManager can find it
-	var gm_paths = ["/root/GameManager", "/root/main/Managers/GameManager", "/root/main/GameManager"]
-	var gm: Node = null
-	for p in gm_paths:
-		gm = get_node_or_null(p)
-		if gm:
-			pass
-			# GameManager located (suppressed)
-			break
+	# Register this manager with the GameManager singleton if available.
+	var gm = _resolve_game_manager()
 	if gm and gm.has_method("register_manager"):
-		pass
-		# registering with GameManager (suppressed)
 		gm.register_manager("UIManager", self)
-	else:
-		pass
-		# GameManager registration skipped (suppressed)
-	
-	# Get child nodes from UIPanel for scores, round display, etc.
-	if ui_panel:
-		var base = ui_panel.get_node_or_null("PanelBG/VBoxContainer")
-		if base:
-			round_label = base.get_node_or_null("RoundTitle/Round#")
-			if round_label:
-				pass
-				# round_label found (suppressed)
-			else:
-				pass
-				# round_label not found (suppressed)
-			# Scoreboxes (each contains three digit labels)
-			player_score_box = base.get_node_or_null("TurnEconomy/PlayerUI/Scorebox")
-			opponent_score_box = base.get_node_or_null("TurnEconomy/OpponentUI/Scorebox")
-			# Actions left labels
-			player_actions_left_label = base.get_node_or_null("TurnEconomy/PlayerUI/ActionDisplay/ActionsLeftLabel")
-			opponent_actions_left_label = base.get_node_or_null("TurnEconomy/OpponentUI/ActionDisplay/ActionsLeftLabel")
-			# Panels for modulate when active/inactive
-			player_actions_panel = base.get_node_or_null("TurnEconomy/PlayerUI")
-			opponent_actions_panel = base.get_node_or_null("TurnEconomy/OpponentUI")
 
-			# Ensure panels start in the 'off' visual state unless something else sets them
-			if player_actions_panel:
-				player_actions_panel.modulate.a = panels_off_alpha
-			if opponent_actions_panel:
-				opponent_actions_panel.modulate.a = panels_off_alpha
-			# Pass button wiring
-			var pass_button = base.get_node_or_null("TurnEconomy/PlayerUI/PassButton")
-			if pass_button:
-				# Ensure we don't double-connect
-				var already_connected = false
-				for conn in pass_button.get_signal_connection_list("pressed"):
-					if conn.target == self:
-						already_connected = true
-						break
-				if not already_connected:
-					pass_button.connect("pressed", Callable(self, "_on_player_pass_pressed"))
-				# Always connect hover signals (handler will check turn)
-				if not pass_button.is_connected("mouse_entered", Callable(self, "_on_pass_button_hover")):
-					pass_button.connect("mouse_entered", Callable(self, "_on_pass_button_hover"))
-				if not pass_button.is_connected("mouse_exited", Callable(self, "_on_pass_button_exit")):
-					pass_button.connect("mouse_exited", Callable(self, "_on_pass_button_exit"))
-			# store for external control
-			self.set("_player_pass_button", pass_button)
-			if pass_button:
-				pass
-				# stored player pass button (suppressed)
-			else:
-				pass
-				# pass button not found (suppressed)
+	# --- Initial UI State Setup ---
+	if is_instance_valid(ui_panel):
+		ui_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
-				# Loading overlay (full panel child)
-				loading_rect = ui_panel.get_node_or_null("Loading")
-				if loading_rect:
-					pass
-					# loading rect found (suppressed)
-					# ensure it's initially hidden and use configured opacity
-					loading_rect.visible = false
-					loading_rect.modulate.a = loading_opacity
-				else:
-					pass
-					# loading rect not found (suppressed)
+	if is_instance_valid(loading_rect):
+		loading_rect.visible = false
+		loading_rect.modulate.a = loading_opacity
 
-		# Keep backwards-compatible names used elsewhere
-		player_score_label = player_score_box
-		opponent_score_label = opponent_score_box
+	if is_instance_valid(player_actions_panel):
+		player_actions_panel.modulate.a = panels_off_alpha
+	if is_instance_valid(opponent_actions_panel):
+		opponent_actions_panel.modulate.a = panels_off_alpha
 
-	# Disable UI panel inputs initially
-	ui_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	# --- Signal Connections ---
+	if is_instance_valid(player_pass_button):
+		# Ensure we don't double-connect the pressed signal.
+		if not player_pass_button.is_connected("pressed", _on_player_pass_pressed):
+			player_pass_button.connect("pressed", _on_player_pass_pressed)
+		
+		# Hover signals are always connected; the handler will check for turn state.
+		if not player_pass_button.is_connected("mouse_entered", _on_pass_button_hover):
+			player_pass_button.connect("mouse_entered", _on_pass_button_hover)
+		if not player_pass_button.is_connected("mouse_exited", _on_pass_button_exit):
+			player_pass_button.connect("mouse_exited", _on_pass_button_exit)
 
-## Called when the player's Pass button is pressed
-func _on_player_pass_pressed() -> void:
-	pass
-	# player pass pressed (suppressed)
-	# Notify TurnManager via GameManager if available
-	var gm = get_node_or_null("/root/GameManager")
-	var tm: Node = null
-	if gm and gm.has_method("get_manager"):
-		tm = gm.get_manager("TurnManager")
-	if not tm:
-		tm = get_node_or_null("/root/main/Managers/TurnManager")
-	if tm and tm.has_method("pass_current_player"):
-		tm.pass_current_player()
-	else:
-		pass
-		# TurnManager not found to handle pass (suppressed)
-
-func _on_pass_button_hover() -> void:
-	var game_manager = get_node_or_null("/root/GameManager")
-	if not game_manager or game_manager.current_game_state != game_manager.GameState.IN_ROUND:
-		return
-	# Only show hover message during player's turn
-	var turn_manager = get_node_or_null("/root/main/Managers/TurnManager")
-	if not turn_manager or not turn_manager.has_method("get_is_player_turn") or not turn_manager.get_is_player_turn():
-		return
-	var info_manager = get_node_or_null("/root/main/Managers/InfoScreenManager")
-	if info_manager and info_manager.has_method("show_pass_button_hover"):
-		# Get the current actions left value from the label
-		var actions_left = 0
-		if player_actions_left_label and player_actions_left_label.text != "":
-			actions_left = int(player_actions_left_label.text)
-		# show hover message for pass button
-		# actions_left captured
-		info_manager.show_pass_button_hover(actions_left)
-
-func _on_pass_button_exit() -> void:
-	var game_manager = get_node_or_null("/root/GameManager")
-	if not game_manager or game_manager.current_game_state != game_manager.GameState.IN_ROUND:
-		return
-	var info_manager = get_node_or_null("/root/main/Managers/InfoScreenManager")
-	if info_manager and info_manager.has_method("clear"):
-		info_manager.clear()
+	print("UIManager ready.")
 
 
+#region Public API
+# -----------------------------------------------------------------------------
+# Methods called by other managers (GameManager, TurnManager, etc.)
 
-## Simple static Loading overlay API (show/hide)
 func show_loading() -> void:
-	if not loading_rect:
-		pass
-		# show_loading called but loading_rect is null (suppressed)
-		return
-	loading_rect.visible = true
-	loading_rect.modulate.a = loading_opacity
-	# loading visible (suppressed)
+	if is_instance_valid(loading_rect):
+		loading_rect.visible = true
 
 func hide_loading() -> void:
-	if not loading_rect:
-		pass
-		# hide_loading called but loading_rect is null (suppressed)
-		return
-	loading_rect.visible = false
-	loading_rect.modulate.a = loading_opacity
-	# loading hidden (suppressed)
+	if is_instance_valid(loading_rect):
+		loading_rect.visible = false
 
-## Allow other managers to enable/disable the player's pass button
 func set_pass_button_enabled(enabled: bool) -> void:
-	var pb = null
-	if self.has_method("get"):
-		pb = self.get("_player_pass_button")
-	if pb:
-		pb.disabled = not enabled
-		# pass button enabled/disabled (suppressed)
-		return
-	# Try fallback lookup
-	var base = ui_panel.get_node_or_null("PanelBG/VBoxContainer") if ui_panel else null
-	if base:
-		var pass_button = base.get_node_or_null("TurnEconomy/PlayerUI/PassButton")
-		if pass_button:
-			pass_button.disabled = not enabled
-			# pass button fallback set (suppressed)
-			return
-	# no pass button found fallback (suppressed)
+	if is_instance_valid(player_pass_button):
+		player_pass_button.disabled = not enabled
 
+func set_end_round_mode(enabled: bool) -> void:
+	if is_instance_valid(player_actions_panel):
+		player_actions_panel.modulate.a = panels_on_alpha if enabled else panels_off_alpha
+	if is_instance_valid(opponent_actions_panel):
+		opponent_actions_panel.modulate.a = panels_on_alpha if enabled else panels_off_alpha
 
+	if is_instance_valid(player_pass_button):
+		player_pass_button.modulate.a = panels_off_alpha if enabled else 1.0
+		player_pass_button.disabled = enabled
+		player_pass_button.mouse_filter = Control.MOUSE_FILTER_IGNORE if enabled else Control.MOUSE_FILTER_PASS
 
-# === GAME STATE OVERLAY METHODS ===
-
-# Shows sequential messages: "Game Start" -> "Round X" -> "Your Turn"
 func show_game_start_sequence(round_number: int, is_player_turn: bool) -> void:
-	pass
-	# show_game_start_sequence called (suppressed)
-	if not game_state_overlay:
-		pass
-		# game_state_overlay is null (suppressed)
-		return
+	if not is_instance_valid(game_state_overlay): return
 	var label = game_state_overlay.get_node_or_null("CenterContainer/GameState")
-	if not label:
-		pass
-		# label is null (suppressed)
-		return
+	if not is_instance_valid(label): return
 
 	game_state_overlay.visible = true
 	label.modulate.a = 0.0
@@ -291,68 +176,236 @@ func show_game_start_sequence(round_number: int, is_player_turn: bool) -> void:
 		"label": label,
 		"texts": ["Game Start", "Round %d" % round_number, turn_text]
 	}
-	# start sequence data initialized (suppressed)
-
 	_advance_start_sequence()
 
-
-# Shows "Round X" message with fade animation
-func show_round_start_overlay(message: String) -> void:
-	if not game_state_overlay:
-		return
-	
-	game_state_overlay.visible = true
-	var label = game_state_overlay.get_node_or_null("CenterContainer/GameState")
-	if label:
-		label.text = message
-	
-	# TODO: Add fade in/out tween animation
-
-
-# Shows "Your Turn" or "Opponent's Turn"
 func show_turn_message(is_player_turn: bool) -> void:
-	if not game_state_overlay:
-		return
-	
+	if not is_instance_valid(game_state_overlay): return
 	var label = game_state_overlay.get_node_or_null("CenterContainer/GameState")
-	if not label:
-		return
+	if not is_instance_valid(label): return
 
 	game_state_overlay.visible = true
 	label.modulate.a = 0.0
+	label.text = "Your \nTurn" if is_player_turn else "Opponent's \nTurn"
 	
-	var turn_text = "Your \nTurn" if is_player_turn else "Opponent's \nTurn"
-	label.text = turn_text
-	
-	var tween = create_tween()
+	var tween = create_tween().set_parallel()
 	tween.tween_property(label, "modulate:a", 1.0, 0.35).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	tween.tween_interval(0.9)
-	tween.tween_property(label, "modulate:a", 0.0, 0.25)
-	tween.tween_callback(func():
-		game_state_overlay.visible = false
+	tween.chain().tween_interval(0.9)
+	tween.chain().tween_property(label, "modulate:a", 0.0, 0.25)
+	tween.chain().tween_callback(func():
+		if is_instance_valid(game_state_overlay):
+			game_state_overlay.visible = false
 		emit_signal("turn_message_finished")
 	)
 
+func update_round_display(round_number: int) -> void:
+	if is_instance_valid(round_label):
+		round_label.text = str(round_number)
 
-func _set_label_text(label: Label, text: String) -> void:
-	if label:
-		label.text = text
+func update_scores(scores: Dictionary) -> void:
+	_set_scorebox_value(0, scores.get(0, 0))
+	_set_scorebox_value(1, scores.get(1, 0))
 
-func _on_start_sequence_complete() -> void:
-	pass
-	# on_start_sequence_complete called (suppressed)
-	if game_state_overlay:
-		game_state_overlay.visible = false
-	emit_signal("start_sequence_finished")
+func set_active_player(is_player_turn: bool) -> void:
+	var target_alpha: float = panels_on_alpha if is_player_turn else panels_off_alpha
+	if is_instance_valid(player_actions_panel):
+		player_actions_panel.modulate.a = target_alpha
+	if is_instance_valid(opponent_actions_panel):
+		opponent_actions_panel.modulate.a = target_alpha
+	
+	set_pass_button_enabled(is_player_turn)
 
+func on_first_card_drawn() -> void:
+	if is_instance_valid(ui_panel):
+		ui_panel.mouse_filter = Control.MOUSE_FILTER_PASS
 
-var _start_sequence_data: Dictionary
+#endregion
+
+#region End of Round/Game
+# -----------------------------------------------------------------------------
+
+func show_end_round_screen(_winner: int, _player_total: int, _opponent_total: int, player_cards_info: Array = [], opponent_cards_info: Array = [], awarded_p1: int = 0, awarded_p2: int = 0) -> void:
+	if not is_instance_valid(end_round_tray): return
+
+	var player_lbl = end_round_tray.find_child("PlayerHandTotal", true, false)
+	var opp_lbl = end_round_tray.find_child("OpponentHandTotal", true, false)
+	var round_summary = end_round_tray.find_child("RoundSummary", true, false)
+
+	# Initialize UI
+	if player_lbl is Label: player_lbl.text = "0"
+	if opp_lbl is Label: opp_lbl.text = "0"
+	if round_summary is Label:
+		round_summary.text = ""
+		round_summary.visible = false
+
+	end_round_tray.visible = true
+	end_round_tray.grab_focus()
+	if not end_round_tray.is_connected("gui_input", _on_end_round_tray_input):
+		end_round_tray.connect("gui_input", _on_end_round_tray_input)
+
+	# Interleave card reveals for both players
+	var displayed_player_total = 0
+	var displayed_opponent_total = 0
+	var max_len = max(player_cards_info.size(), opponent_cards_info.size())
+	
+	for i in range(max_len):
+		if i < player_cards_info.size():
+			var p_info = player_cards_info[i]
+			var p_val = int(p_info.get("value", 0))
+			displayed_player_total += p_val
+			if player_lbl is Label: player_lbl.text = str(displayed_player_total)
+			var p_card = _find_card_node(p_info.get("name", ""), true)
+			if is_instance_valid(p_card):
+				_pop_and_flash_card(p_card, true, i)
+
+		if i < opponent_cards_info.size():
+			var o_info = opponent_cards_info[i]
+			var o_val = int(o_info.get("value", 0))
+			displayed_opponent_total += o_val
+			if opp_lbl is Label: opp_lbl.text = str(displayed_opponent_total)
+			var o_card = _find_card_node(o_info.get("name", ""), false)
+			if is_instance_valid(o_card):
+				_pop_and_flash_card(o_card, false, i)
+
+		if end_round_step_delay > 0.0:
+			await get_tree().create_timer(end_round_step_delay).timeout
+
+	# Finalize totals and show winner summary
+	if player_lbl is Label: player_lbl.text = str(displayed_player_total)
+	if opp_lbl is Label: opp_lbl.text = str(displayed_opponent_total)
+	
+	if _winner != -1 and round_summary is Label:
+		if end_round_summary_delay > 0.0: await get_tree().create_timer(end_round_summary_delay).timeout
+		round_summary.text = "You win!" if _winner == 0 else "You've lost..."
+		round_summary.visible = true
+
+		if end_round_summary_to_score_delay > 0.0: await get_tree().create_timer(end_round_summary_to_score_delay).timeout
+		var awarded = awarded_p1 if _winner == 0 else awarded_p2
+		if awarded > 0:
+			await _animate_award_numeric(_winner, awarded)
+
+func show_game_over_screen(_winner: int, _final_score: int) -> void:
+	if is_instance_valid(end_game_tray):
+		end_game_tray.visible = true
+		# TODO: Update labels in end_game_tray with winner info
+
+func await_end_round_close() -> Signal:
+	if not is_instance_valid(end_round_tray) or not end_round_tray.visible:
+		return await get_tree().process_frame
+	return await end_round_closed
+
+func _close_end_round_tray() -> void:
+	if is_instance_valid(end_round_tray):
+		if end_round_tray.is_connected("gui_input", _on_end_round_tray_input):
+			end_round_tray.disconnect("gui_input", _on_end_round_tray_input)
+		
+		for snapshot in active_end_round_snapshots:
+			if is_instance_valid(snapshot):
+				snapshot.queue_free()
+		active_end_round_snapshots.clear()
+		end_round_tray.visible = false
+	
+	emit_signal("end_round_closed")
+
+#endregion
+
+#region Internal Helpers
+# -----------------------------------------------------------------------------
+
+## Recursively searches for a descendant node by name.
+func _find_descendant_by_name(root: Node, target_name: String) -> Node:
+	if not is_instance_valid(root): return null
+	for child in root.get_children():
+		if child.name == target_name:
+			return child
+		var found = _find_descendant_by_name(child, target_name)
+		if is_instance_valid(found):
+			return found
+	return null
+
+## Finds a card node, preferring CardManager (hands) then the DiscardPile.
+func _find_card_node(card_name: String, is_player: bool) -> Node:
+	var card_manager = get_node_or_null("/root/main/Parallax/CardManager")
+	if is_instance_valid(card_manager):
+		for card in card_manager.get_children():
+			if "card_name" in card and card.card_name == card_name and "is_player_card" in card and card.is_player_card == is_player:
+				return card
+
+	var discard_pile = get_node_or_null("/root/main/DiscardPile")
+	if is_instance_valid(discard_pile):
+		for card in discard_pile.get_children():
+			if "card_name" in card and card.card_name == card_name:
+				return card
+	return null
+
+func _get_hand_slot_node(is_player: bool, index: int) -> Node:
+	var slot_name = ("PlayerHandSlot" if is_player else "OpponentHandSlot") + str(index + 1)
+	if is_instance_valid(end_round_tray):
+		return end_round_tray.find_child(slot_name, true, false)
+	return null
+
+func _pop_and_flash_card(card: Node, is_player: bool, slot_index: int) -> void:
+	if not is_instance_valid(card) or not card.has_node("Visuals"): return
+	var visuals = card.get_node("Visuals")
+	var slot = _get_hand_slot_node(is_player, slot_index)
+	if not is_instance_valid(slot): return
+
+	var snapshot: TextureRect = await _create_visual_snapshot(visuals, slot)
+	if not is_instance_valid(snapshot): return
+	
+	active_end_round_snapshots.append(snapshot)
+	var final_scale = Vector2.ONE * end_round_card_scale
+	snapshot.scale = final_scale * 0.02
+	
+	var t = create_tween().set_parallel()
+	t.tween_property(snapshot, "scale", final_scale * 1.18, end_round_pop_grow_time).set_ease(Tween.EASE_OUT)
+	t.tween_property(snapshot, "modulate", Color.WHITE_SMOKE, end_round_pop_flash_time)
+	t.chain().tween_property(snapshot, "scale", final_scale, end_round_pop_settle_time).set_ease(Tween.EASE_IN_OUT)
+	t.parallel().tween_property(snapshot, "modulate", Color.WHITE, end_round_pop_settle_time)
+	await t.finished
+
+## Creates a TextureRect snapshot of a card's visuals and parents it to the specified slot.
+func _create_visual_snapshot(visual_node: Node, slot: Node) -> TextureRect:
+	if not is_instance_valid(visual_node) or not is_instance_valid(slot): return null
+
+	# Optimization: If the card's visuals already use a SubViewport, just use its texture.
+	var sub_viewport = _find_descendant_by_name(visual_node, "SubViewport")
+	var texture = sub_viewport.get_texture() if is_instance_valid(sub_viewport) else null
+
+	if not texture:
+		# Fallback: Create a temporary SubViewport to render the visuals.
+		var vp = SubViewport.new()
+		vp.size = Vector2i(500, 700) # Assume default card size
+		vp.transparent_bg = true
+		vp.render_target_update_mode = SubViewport.UPDATE_ONCE
+		add_child(vp)
+		vp.add_child(visual_node.duplicate(true))
+		
+		# Wait a frame for the viewport to render.
+		await get_tree().process_frame
+		texture = vp.get_texture()
+		vp.queue_free()
+
+	if not texture: return null
+
+	var tex_rect = TextureRect.new()
+	tex_rect.texture = texture
+	tex_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	tex_rect.z_index = 100 # Ensure it's on top.
+	
+	var parent_container = end_round_tray if is_instance_valid(end_round_tray) else slot
+	parent_container.add_child(tex_rect)
+
+	# Position the snapshot over the slot.
+	var slot_global_pos = slot.get_global_position() if slot is Control else slot.global_position
+	var parent_global_pos = parent_container.get_global_position() if parent_container is Control else parent_container.global_position
+	var local_pos = slot_global_pos - parent_global_pos
+	var tex_size = texture.get_size() * end_round_card_scale
+	tex_rect.position = local_pos - tex_size * 0.5
+
+	return tex_rect
 
 func _advance_start_sequence() -> void:
-	if not _start_sequence_data:
-		pass
-		# start sequence data null (suppressed)
-		return
+	if not _start_sequence_data: return
 	
 	var label: Label = _start_sequence_data.get("label")
 	var texts: Array = _start_sequence_data.get("texts")
@@ -361,244 +414,111 @@ func _advance_start_sequence() -> void:
 		_on_start_sequence_complete()
 		return
 
-	var next_text = texts.pop_front()
-	_start_sequence_data["texts"] = texts
-	if label:
-		label.text = next_text
-		# advancing start sequence (suppressed)
-
-	var tween = create_tween()
+	label.text = texts.pop_front()
+	var tween = create_tween().set_parallel()
 	tween.tween_property(label, "modulate:a", 1.0, 0.35).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	tween.tween_interval(0.9)
-	tween.tween_property(label, "modulate:a", 0.0, 0.25)
-	tween.tween_callback(Callable(self, "_advance_start_sequence"))
+	tween.chain().tween_interval(0.9)
+	tween.chain().tween_property(label, "modulate:a", 0.0, 0.25)
+	tween.chain().tween_callback(_advance_start_sequence)
 
-
-# === UI PANEL METHODS ===
-
-# Updates the persistent round # display in the UI Panel
-func update_round_display(round_number: int) -> void:
-	pass
-	# update round display called (suppressed)
-	if round_label:
-		round_label.text = str(round_number)
-	else:
-		pass
-		# round label not found fallback (suppressed)
-
-
-# Updates the total scores in the UI Panel
-func update_scores(scores: Dictionary) -> void:
-	var p1_score = scores.get(0, 0)
-	var p2_score = scores.get(1, 0)
-	# Format scores into 3 digits and update the scoreboxes
-	var p1_digits = _format_digits(p1_score, 3)
-	var p2_digits = _format_digits(p2_score, 3)
-
-	if player_score_box:
-		var d1 = player_score_box.get_node_or_null("#__")
-		var d2 = player_score_box.get_node_or_null("_#_")
-		var d3 = player_score_box.get_node_or_null("__#")
-		if d1: d1.text = str(p1_digits[0])
-		if d2: d2.text = str(p1_digits[1])
-		if d3: d3.text = str(p1_digits[2])
-
-	if opponent_score_box:
-		var od1 = opponent_score_box.get_node_or_null("#__")
-		var od2 = opponent_score_box.get_node_or_null("_#_")
-		var od3 = opponent_score_box.get_node_or_null("__#")
-		if od1: od1.text = str(p2_digits[0])
-		if od2: od2.text = str(p2_digits[1])
-		if od3: od3.text = str(p2_digits[2])
-
-	# score update completed (suppressed)
-
-
-func _format_digits(value: int, length: int) -> Array:
-	var s = str(value)
-	while s.length() < length:
-		s = "0" + s
-	var out: Array = []
-	for i in range(length):
-		out.append(s[i])
-	return out
-
-
-# Sets transparency on action panels to show whose turn it is
-func set_active_player(_is_player_turn: bool) -> void:
-	# When called with 'true' we switch panels to the visible/on alpha.
-	# When called with 'false' we set them to the dim/off alpha.
-	# This function is used at startup (false) and when cards draw (true).
-	var target_alpha: float = panels_on_alpha if _is_player_turn else panels_off_alpha
-
-	if player_actions_panel:
-		player_actions_panel.modulate.a = target_alpha
-
-	if opponent_actions_panel:
-		opponent_actions_panel.modulate.a = target_alpha
+func _set_scorebox_value(player_index: int, value: int) -> void:
+	var box = player_score_box if player_index == 0 else opponent_score_box
+	if not is_instance_valid(box): return
 	
-	# Connect/disconnect pass button hover signals based on whose turn it is
-	var pass_button = self.get("_player_pass_button")
-	# set_active_player called; updating pass button connections
-	if pass_button:
-		set_pass_button_enabled(_is_player_turn)
-		# Disconnect existing hover connections if any
-		if pass_button.is_connected("mouse_entered", Callable(self, "_on_pass_button_hover")):
-			pass_button.disconnect("mouse_entered", Callable(self, "_on_pass_button_hover"))
-		if pass_button.is_connected("mouse_exited", Callable(self, "_on_pass_button_exit")):
-			pass_button.disconnect("mouse_exited", Callable(self, "_on_pass_button_exit"))
+	var digits_str = "%03d" % value
+	var d1 = box.get_node_or_null("#__")
+	var d2 = box.get_node_or_null("_#_")
+	var d3 = box.get_node_or_null("__#")
+	if d1 is Label: d1.text = digits_str[0]
+	if d2 is Label: d2.text = digits_str[1]
+	if d3 is Label: d3.text = digits_str[2]
+
+func _animate_award_numeric(winner_index: int, awarded_points: int) -> Signal:
+	var gm = _resolve_game_manager()
+	if not gm:
+		return await get_tree().process_frame
 		
-		# Reconnect hover signals only if it's the player's turn
-		if _is_player_turn:
-			pass_button.connect("mouse_entered", Callable(self, "_on_pass_button_hover"))
-			pass_button.connect("mouse_exited", Callable(self, "_on_pass_button_exit"))
+	var base_total = gm.get_total_score(winner_index)
+	var end_val = base_total + awarded_points
 
+	var t = create_tween()
+	# Use a property tween on a temporary variable for a smooth count-up effect.
+	var countup = {"value": base_total}
+	t.tween_property(countup, "value", end_val, end_round_award_duration)
+	# On each frame of the tween, update the label text.
+	t.tween_method(func(val): _set_scorebox_value(winner_index, int(val)), base_total, end_val, end_round_award_duration)
 
-# === END ROUND TRAY METHODS ===
+	# After the animation finishes, update the actual game state.
+	t.chain().tween_callback(func():
+		_set_scorebox_value(winner_index, end_val)
+		if gm.has_method("add_score"):
+			gm.add_score(winner_index, awarded_points)
+	)
+	return t.finished
 
-# Shows the end round screen with card reveal animation
-func show_end_round_screen(_winner: int, _player_total: int, _opponent_total: int, player_cards_info: Array = [], opponent_cards_info: Array = []) -> void:
-	if not end_round_tray:
-		return
+func _resolve_game_manager() -> Node:
+	# Prefer the singleton path if it exists.
+	var gm = get_node_or_null("/root/GameManager")
+	if not gm:
+		gm = get_tree().get_root().find_child("GameManager", true, false)
+	return gm
+#endregion
 
-	# Labels on the tray
-	var player_lbl = end_round_tray.get_node_or_null("PlayerHandTotal")
-	var opp_lbl = end_round_tray.get_node_or_null("OpponentHandTotal")
-	var round_summary = end_round_tray.get_node_or_null("RoundSummary")
+#region Signal Handlers
+func _on_showcase_button_pressed(callback: Callable):
+	# When a button is pressed, tell the GameManager which choice was made.
+	emit_signal("showcase_option_selected", callback)
+# -----------------------------------------------------------------------------
+func _on_player_pass_pressed() -> void:
+	var gm = _resolve_game_manager()
+	if gm and gm.has_method("get_manager"):
+		var tm = gm.get_manager("TurnManager")
+		if tm and tm.has_method("pass_current_player"):
+			tm.pass_current_player()
 
-	# Initialize displayed totals to 0 for the animated count-up
-	if player_lbl and player_lbl is Label:
-		player_lbl.text = "0"
-	if opp_lbl and opp_lbl is Label:
-		opp_lbl.text = "0"
+func _on_pass_button_hover() -> void:
+	var tm = _resolve_game_manager().get_manager("TurnManager")
+	# Only show hover message if it is currently the player's turn.
+	if not tm or not tm.get_is_player_turn(): return
 
-	# Show the tray and overlay
-	end_round_tray.visible = true
-	if end_round_tray.has_method("grab_focus"):
-		end_round_tray.grab_focus()
-	if not end_round_tray.is_connected("gui_input", Callable(self, "_on_end_round_tray_input")):
-		end_round_tray.connect("gui_input", Callable(self, "_on_end_round_tray_input"))
-	if game_state_overlay:
-		game_state_overlay.visible = true
+	var info_manager = _resolve_game_manager().get_manager("InfoScreenManager")
+	if info_manager and info_manager.has_method("show_pass_button_hover"):
+		var actions_left = int(player_actions_left_label.text) if is_instance_valid(player_actions_left_label) else 0
+		info_manager.show_pass_button_hover(actions_left)
 
-	# Helper: find discard pile and its children (cards were moved there already)
-	var discard_node = null
-	var main_node = get_node_or_null("/root/main")
-	if main_node and "discard_pile_node" in main_node:
-		discard_node = main_node.discard_pile_node
-	if not discard_node:
-		discard_node = get_tree().get_root().find_node("DiscardPile", true, false)
+func _on_pass_button_exit() -> void:
+	var info_manager = _resolve_game_manager().get_manager("InfoScreenManager")
+	if info_manager and info_manager.has_method("clear"):
+		info_manager.clear()
 
-	# Animate player cards one-by-one: flash the card in the discard pile and increment the displayed total
-	var displayed_player_total = 0
-	for card_info in player_cards_info:
-		var val = int(card_info.get("value", 0))
-		# Find a matching card in discard pile (by name) if possible
-		var found_card = null
-		if discard_node:
-			for child in discard_node.get_children():
-				if child and "card_name" in child and child.card_name == card_info.get("name", ""):
-					found_card = child
-					break
+func _on_start_sequence_complete() -> void:
+	if is_instance_valid(game_state_overlay):
+		game_state_overlay.visible = false
+	emit_signal("start_sequence_finished")
 
-		# Flash the card visually if found
-		if is_instance_valid(found_card):
-			_flash_card(found_card)
-
-		# Increment displayed total with a small animation delay
-		displayed_player_total += val
-		if player_lbl and player_lbl is Label:
-			player_lbl.text = str(displayed_player_total)
-		await get_tree().create_timer(0.28).timeout
-
-	# Animate opponent cards
-	var displayed_opponent_total = 0
-	for card_info in opponent_cards_info:
-		var val2 = int(card_info.get("value", 0))
-		var found_card2 = null
-		if discard_node:
-			for child2 in discard_node.get_children():
-				if child2 and "card_name" in child2 and child2.card_name == card_info.get("name", ""):
-					found_card2 = child2
-					break
-		if is_instance_valid(found_card2):
-			_flash_card(found_card2)
-		displayed_opponent_total += val2
-		if opp_lbl and opp_lbl is Label:
-			opp_lbl.text = str(displayed_opponent_total)
-		await get_tree().create_timer(0.28).timeout
-
-	# After counting finishes, declare a winner message
-	if round_summary and round_summary is Label:
-		var msg = "It's a Tie..."
-		if _winner == -1:
-			msg = "It's a Tie..."
-		elif _winner == 0:
-			msg = "You Win the Round!"
-		else:
-			msg = "Opponent Wins the Round"
-		round_summary.text = msg
-
-	# Done — now UI awaits dismissal by the player (click/key) via existing handler
-
-
-# === END GAME TRAY METHODS ===
-
-# Shows the game over screen with final winner
-func show_game_over_screen(_winner: int, _final_score: int) -> void:
-	if not end_game_tray:
-		return
-	
-	end_game_tray.visible = true
-	
-	# TODO: Update labels in end_game_tray with winner info
-	# game over display (suppressed)
-
-
-# Enable inputs when the first card is drawn
-func on_first_card_drawn() -> void:
-	ui_panel.mouse_filter = Control.MOUSE_FILTER_PASS
-
-
-func _on_end_round_tray_input(ev) -> void:
-	# Close on any mouse click or key press
-	if ev and (ev is InputEventMouseButton and ev.pressed or ev is InputEventKey and ev.pressed):
+func _on_end_round_tray_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.is_pressed() or event is InputEventKey and event.is_pressed():
 		_close_end_round_tray()
 
-func _flash_card(card: Node) -> void:
-	# Simple flash: scale up slightly and flash modulate on the Visuals node if present
-	if not is_instance_valid(card):
-		return
-	if not card.has_node("Visuals"):
-		return
-	var visuals = card.get_node("Visuals")
-	var orig_scale = visuals.scale
-	var t = create_tween()
-	t.tween_property(visuals, "scale", orig_scale * 1.18, 0.12).set_ease(Tween.EASE_OUT)
-	t.parallel().tween_property(visuals, "modulate", Color(1.8, 1.8, 1.8, 1.0), 0.08)
-	t.chain().tween_property(visuals, "scale", orig_scale, 0.18).set_ease(Tween.EASE_IN_OUT)
-	t.parallel().tween_property(visuals, "modulate", Color(1, 1, 1, 1), 0.18)
+func on_showcase_button_pressed(callback: Callable):
+	print("Showcase button pressed. Callback: %s" % callback)
+	hide_showcase_options()
+	emit_signal("showcase_option_selected", callback)
+
+func hide_showcase_options() -> void:
+	if is_instance_valid(showcase_options_container):
+		showcase_options_container.visible = false
+#endregion
 
 
-func _close_end_round_tray() -> void:
-	if end_round_tray:
-		if end_round_tray.is_connected("gui_input", Callable(self, "_on_end_round_tray_input")):
-			end_round_tray.disconnect("gui_input", Callable(self, "_on_end_round_tray_input"))
-		end_round_tray.visible = false
-	if game_state_overlay:
-		game_state_overlay.visible = false
-	emit_signal("end_round_closed")
+func enable_selection_mode_ui():
+	"""Prepares the UI for card selection by hiding the main input blocker."""
+	if is_instance_valid(catcher_button):
+		catcher_button.hide()
 
-
-func await_end_round_close() -> void:
-	# Helper for code that wants to wait until the tray is dismissed.
-	if not end_round_tray or not end_round_tray.visible:
-		return
-	await self.end_round_closed
-
-# Added logic to suppress hover-triggered commentary when it's not the player's turn
-func suppress_hover_commentary(is_player_turn: bool) -> void:
-	var info_manager = get_node_or_null("/root/main/Managers/InfoScreenManager")
-	if info_manager:
-		if not is_player_turn:
-			info_manager.clear()
+func disable_selection_mode_ui():
+	"""Restores the UI to its normal state after selection is complete."""
+	if is_instance_valid(catcher_button):
+		# We don't necessarily show it, just ensure it's not blocking.
+		# The showcase logic will show it if needed.
+		pass

@@ -8,6 +8,10 @@ extends Button
 @onready var suit_label2 = $CardFace/SuitLabel2
 @onready var background = $CardFace/Background
 
+func set_rotation_and_scale_to_neutral() -> void:
+	rotation = 0
+	scale = Vector2.ONE
+
 func set_card_data(data_name: String) -> void:
 	var card_data_loader = get_node_or_null("/root/CardDataLoader")
 	if not card_data_loader:

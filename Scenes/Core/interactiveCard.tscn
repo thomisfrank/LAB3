@@ -1,9 +1,18 @@
-[gd_scene load_steps=9 format=3 uid="uid://hicesjantdjt"]
+[gd_scene load_steps=12 format=3 uid="uid://hicesjantdjt"]
 
 [ext_resource type="Shader" uid="uid://b7ew8d41jwrf2" path="res://Scripts/Shader/perspective.gdshader" id="1_7ebid"]
 [ext_resource type="Script" uid="uid://bldwvpjh88qlo" path="res://Scripts/Core/interactive_card.gd" id="1_pgduw"]
 [ext_resource type="Shader" uid="uid://dl18pdf50a4mb" path="res://Scripts/Shader/CardBorder.gdshader" id="2_m41v0"]
 [ext_resource type="PackedScene" uid="uid://jk3nxgheskjr" path="res://Scenes/Core/card.tscn" id="2_sxeun"]
+[ext_resource type="Shader" uid="uid://dnb21ffhlaf34" path="res://Scripts/Shader/deckPile.gdshader" id="5_kpql8"]
+[ext_resource type="Texture2D" uid="uid://cqtldsioiy6iq" path="res://Assets/UI/lock.png" id="5_m41v0"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_yfov1"]
+shader = ExtResource("5_kpql8")
+shader_parameter/fill_color = Color(1, 1, 1, 0)
+shader_parameter/outline_color = Color(0, 0.88235295, 1, 1)
+shader_parameter/pixel_grid_size = 32.0
+shader_parameter/corner_size = 3
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_kpql8"]
 shader = ExtResource("2_m41v0")
@@ -28,7 +37,7 @@ shader_parameter/inset = 0.0
 
 [node name="InteractiveCard" type="Node2D"]
 script = ExtResource("1_pgduw")
-max_tilt_angle = 1.0
+max_tilt_angle = 10.0
 hover_scale = 1.2
 hover_rotation_straighten = 1.0
 drag_smoothing = 5.0
@@ -50,6 +59,16 @@ flip_pop_duration = 0.2
 [node name="Visuals" type="Node2D" parent="."]
 position = Vector2(-290, -345)
 
+[node name="SelectOutline" type="ColorRect" parent="Visuals"]
+visible = false
+material = SubResource("ShaderMaterial_yfov1")
+offset_left = 8.0
+offset_top = -45.0
+offset_right = 574.0
+offset_bottom = 743.0
+mouse_filter = 1
+color = Color(0, 0.88235295, 1, 1)
+
 [node name="Shadow" type="Sprite2D" parent="Visuals"]
 modulate = Color(0, 0, 0, 0.23921569)
 z_index = -6
@@ -65,7 +84,6 @@ custom_minimum_size = Vector2(500, 700)
 offset_left = 44.0
 offset_right = 544.0
 offset_bottom = 700.0
-mouse_filter = 0
 
 [node name="SubViewport" type="SubViewport" parent="Visuals/CardViewport"]
 transparent_bg = true
@@ -86,5 +104,15 @@ offset_bottom = 350.0
 grow_horizontal = 2
 grow_vertical = 2
 
+[node name="LockedState" type="TextureRect" parent="Visuals"]
+visible = false
+offset_left = 55.0
+offset_top = -82.0
+offset_right = 155.0
+offset_bottom = 48.0
+scale = Vector2(0.4, 0.4)
+texture = ExtResource("5_m41v0")
+
+[connection signal="gui_input" from="Visuals/CardViewport" to="." method="_on_display_gui_input"]
 [connection signal="mouse_entered" from="Visuals/CardViewport" to="." method="_on_display_mouse_entered"]
 [connection signal="mouse_exited" from="Visuals/CardViewport" to="." method="_on_display_mouse_exited"]

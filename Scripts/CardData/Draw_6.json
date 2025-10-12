@@ -1,6 +1,7 @@
 {
 	"name": "Draw_6",
 	"suit": "Draw",
+	"effect_type": "draw",
 	"value": "6",
 	"icon_path": "Draw.png",
 	"description": "Draw 1 card",

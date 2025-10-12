@@ -15,7 +15,7 @@
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_jxrjt"]
 shader = ExtResource("1_8dexo")
-shader_parameter/jitter_rate = 6.0000002375
+shader_parameter/jitter_rate = 8.0
 shader_parameter/jitter_amount = 0.002000000095
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_olr4l"]
@@ -161,7 +161,7 @@ font_color = Color(0.94509804, 0.76862746, 0.05882353, 1)
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_8dexo"]
 shader = ExtResource("1_8dexo")
-shader_parameter/jitter_rate = 8.0
+shader_parameter/jitter_rate = 9.00000038
 shader_parameter/jitter_amount = 0.003
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_8dexo"]

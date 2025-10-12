@@ -1,6 +1,7 @@
 {
 	"name": "Swap_6",
 	"suit": "Swap",
+	"effect_type": "swap",
 	"value": "6",
 	"icon_path": "Swap.png",
 	"description": "Swap this card with one from your opponent's hand",
